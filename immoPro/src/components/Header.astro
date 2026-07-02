@@ -16,35 +16,69 @@
     </nav>
 
     <div class="flex items-center gap-3">
-      <button 
-        id="lang-toggle"
-        class="text-xs uppercase tracking-widest text-foreground/60 hover:text-foreground cursor-pointer transition-colors"
-        aria-label="Switch language">
-        EN
+      <button id="lang-toggle" class="text-xs uppercase tracking-widest text-foreground/60 hover:text-foreground cursor-pointer transition-colors" aria-label="Switch language">EN</button>
+      <a href="/agent" class="hidden md:block text-sm text-foreground/70 hover:text-foreground ink-link" data-i18n="nav.agent">Espace agent</a>
+      <button id="menu-toggle" class="md:hidden flex flex-col justify-center w-9 h-9 -mr-1 cursor-pointer" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
       </button>
-      <a href="/agent" class="hidden md:block text-sm text-foreground/70 hover:text-foreground">Espace agent</a>
     </div>
+  </div>
+
+  <div id="mobile-menu" class="mobile-menu md:hidden hidden border-t border-border bg-background">
+    <nav class="flex flex-col px-5 py-3">
+      <a href="/" class="py-3 border-b border-border/60 text-foreground/80 hover:text-foreground transition-colors" data-i18n="nav.home">Accueil</a>
+      <a href="/properties" class="py-3 border-b border-border/60 text-foreground/80 hover:text-foreground transition-colors" data-i18n="nav.properties">Biens</a>
+      <a href="/favorites" class="py-3 border-b border-border/60 text-foreground/80 hover:text-foreground transition-colors" data-i18n="nav.favorites">Favoris</a>
+      <a href="/about" class="py-3 border-b border-border/60 text-foreground/80 hover:text-foreground transition-colors" data-i18n="nav.about">À propos</a>
+      <a href="/contact" class="py-3 border-b border-border/60 text-foreground/80 hover:text-foreground transition-colors" data-i18n="nav.contact">Contact</a>
+      <a href="/agent" class="py-3 text-[#0F766E] font-medium" data-i18n="nav.agent">Espace agent</a>
+    </nav>
   </div>
 </header>
 
+<style>
+  .burger-line { display: block; width: 22px; height: 1.6px; background: currentColor; transition: transform .3s cubic-bezier(.22,1,.36,1), opacity .2s; }
+  .burger-line + .burger-line { margin-top: 5px; }
+  #menu-toggle.is-open .burger-line:nth-child(1) { transform: translateY(6.6px) rotate(45deg); }
+  #menu-toggle.is-open .burger-line:nth-child(2) { opacity: 0; }
+  #menu-toggle.is-open .burger-line:nth-child(3) { transform: translateY(-6.6px) rotate(-45deg); }
+</style>
+
 <script>
-  // Language toggle button (works with MainLayout global system)
-  function updateLangButton() {
-    const btn = document.getElementById('lang-toggle');
-    if (!btn) return;
+  function setupHeader() {
+    // Language toggle
+    const langBtn = document.getElementById('lang-toggle');
+    if (langBtn) {
+      const current = localStorage.getItem('immopro_locale') || 'fr';
+      langBtn.textContent = current === 'fr' ? 'EN' : 'FR';
+      langBtn.onclick = () => {
+        const next = (localStorage.getItem('immopro_locale') || 'fr') === 'fr' ? 'en' : 'fr';
+        localStorage.setItem('immopro_locale', next);
+        window.dispatchEvent(new CustomEvent('immopro:locale-changed', { detail: { locale: next } }));
+        langBtn.textContent = next === 'fr' ? 'EN' : 'FR';
+      };
+    }
 
-    const current = localStorage.getItem('immopro_locale') || 'fr';
-    btn.textContent = current === 'fr' ? 'EN' : 'FR';
-
-    btn.onclick = () => {
-      const next = current === 'fr' ? 'en' : 'fr';
-      localStorage.setItem('immopro_locale', next);
-      window.dispatchEvent(new CustomEvent('immopro:locale-changed', { detail: { locale: next } }));
-      btn.textContent = next === 'fr' ? 'EN' : 'FR';
-    };
+    // Mobile menu
+    const btn = document.getElementById('menu-toggle');
+    const menu = document.getElementById('mobile-menu');
+    if (btn && menu) {
+      btn.onclick = () => {
+        const open = menu.classList.toggle('hidden') === false;
+        btn.classList.toggle('is-open', open);
+        btn.setAttribute('aria-expanded', String(open));
+      };
+      menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => {
+        menu.classList.add('hidden');
+        btn.classList.remove('is-open');
+        btn.setAttribute('aria-expanded', 'false');
+      }));
+    }
   }
 
-  updateLangButton();
-  document.addEventListener('astro:after-swap', updateLangButton);
-  window.addEventListener('immopro:locale-changed', updateLangButton);
+  setupHeader();
+  document.addEventListener('astro:after-swap', setupHeader);
+  window.addEventListener('immopro:locale-changed', setupHeader);
 </script>

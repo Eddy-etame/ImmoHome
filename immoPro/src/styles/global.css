@@ -227,8 +227,13 @@ html.preface-active, html.preface-active body { overflow: hidden; }
   transform: translateY(0);
   transition: transform 950ms cubic-bezier(0.76, 0, 0.24, 1);
   will-change: transform;
+  /* Backstop: if JS never runs, the loader still clears itself. */
+  animation: preface-failsafe 0.6s ease 5s forwards;
 }
 #brand-preface.is-leaving { transform: translateY(-101%); }
+@keyframes preface-failsafe {
+  to { opacity: 0; visibility: hidden; pointer-events: none; }
+}
 
 .preface-aura {
   position: absolute;
