@@ -260,11 +260,25 @@ const canonicalUrl = Astro.url.href;
     };
 
     // === Initialization (correctly wired for every load & navigation) ===
-    function initAllSystems() {
-      applyI18n();
+    function runEntranceSystems() {
       initLivelyTextAnimations();
       initStatCounters();
       initReveals();
+    }
+
+    function initAllSystems() {
+      applyI18n();
+      // On the very first load the cinematic loader is up. Hold the entrance
+      // animations (typewriter, reveals, counters) until the curtain lifts so
+      // they actually play on screen instead of behind the loader.
+      if (document.documentElement.classList.contains('preface-active')) {
+        let ran = false;
+        const go = () => { if (ran) return; ran = true; runEntranceSystems(); };
+        window.addEventListener('immopro:preface-done', go, { once: true });
+        setTimeout(go, 4300); // safety if the loader event never fires
+      } else {
+        runEntranceSystems();
+      }
     }
 
     if (document.readyState === 'loading') {

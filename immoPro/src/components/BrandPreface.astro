@@ -1,63 +1,103 @@
 ---
-// Brand Preface — Elegant preloader for ImmoPro (Paper & Ink)
-// Shows on first hard load / new session, re-triggers on reload as per user preference for lively experience.
-// Does not spam on soft ViewTransitions.
+// Brand Preface — cinematic loader for ImmoPro.
+// 0→100 counter synchronized with a progress line, per-letter brand reveal,
+// warm light + film grain, then a curtain wipe into the page.
+// Shows once per session (hard load / new tab), never on soft navigation.
 ---
 
-<div id="brand-preface" data-preface="true">
+<div id="brand-preface" data-preface="true" role="presentation" aria-hidden="true">
+  <div class="preface-aura"></div>
+  <div class="preface-grain"></div>
+
   <div class="preface-inner">
-    <div class="preface-logo">ImmoPro</div>
-    <div class="preface-tag">Cameroun • Immobilier d’Exception</div>
-    <div class="preface-ink"></div>
+    <div class="preface-kicker">Cameroun · Immobilier d’Exception</div>
+    <div class="preface-logo" data-word="ImmoPro">ImmoPro</div>
+    <div class="preface-rule"><span class="preface-rule-fill"></span></div>
   </div>
+
+  <div class="preface-meta">
+    <span class="preface-status">Curation en cours</span>
+    <span class="preface-count">0</span>
+  </div>
+
+  <div class="preface-curtain" aria-hidden="true"></div>
 </div>
 
 <script>
-  (function() {
+  (function () {
     const PREFACE_KEY = 'immopro_has_seen_preface';
     const preface = document.getElementById('brand-preface');
-
     if (!preface) return;
 
-    const hasSeen = sessionStorage.getItem(PREFACE_KEY) === 'true';
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const seen = sessionStorage.getItem(PREFACE_KEY) === 'true';
 
-    const forceRemove = () => {
-      if (preface && preface.parentNode) {
-        preface.parentNode.removeChild(preface);
-      }
-    };
+    const remove = () => preface.parentNode && preface.parentNode.removeChild(preface);
 
-    if (!hasSeen) {
-      sessionStorage.setItem(PREFACE_KEY, 'true');
-
-      const hide = () => {
-        preface.classList.add('fade-out');
-        setTimeout(() => {
-          forceRemove();
-        }, 420);
-      };
-
-      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const duration = prefersReduced ? 420 : 1350;
-
-      setTimeout(hide, duration);
-
-      const dismiss = () => {
-        if (!preface.classList.contains('fade-out')) hide();
-      };
-
-      window.addEventListener('keydown', dismiss, { once: true });
-      preface.addEventListener('click', dismiss, { once: true });
-    } else {
-      forceRemove();
+    // On soft navigations (already seen this session) never show it.
+    if (seen) {
+      remove();
+      document.documentElement.classList.remove('preface-active');
+      return;
     }
 
-    // ViewTransitions safety
-    const cleanup = () => {
-      const existing = document.getElementById('brand-preface');
-      if (existing) existing.remove();
+    sessionStorage.setItem(PREFACE_KEY, 'true');
+    document.documentElement.classList.add('preface-active');
+
+    // Per-letter reveal of the wordmark.
+    const logo = preface.querySelector('.preface-logo') as HTMLElement | null;
+    if (logo) {
+      const word = logo.dataset.word || logo.textContent || '';
+      logo.textContent = '';
+      word.split('').forEach((ch, i) => {
+        const s = document.createElement('span');
+        s.className = 'preface-letter';
+        s.textContent = ch;
+        s.style.setProperty('--d', `${120 + i * 55}ms`);
+        logo.appendChild(s);
+      });
+    }
+
+    const countEl = preface.querySelector('.preface-count') as HTMLElement | null;
+    const fillEl = preface.querySelector('.preface-rule-fill') as HTMLElement | null;
+
+    const finish = () => {
+      preface.classList.add('is-leaving');
+      document.documentElement.classList.remove('preface-active');
+      document.documentElement.classList.add('preface-done');
+      // Let entrance animations know the stage is clear.
+      window.dispatchEvent(new CustomEvent('immopro:preface-done'));
+      const done = () => remove();
+      preface.addEventListener('transitionend', done, { once: true });
+      setTimeout(done, 1100); // safety
     };
 
+    if (reduced) {
+      if (countEl) countEl.textContent = '100';
+      if (fillEl) fillEl.style.transform = 'scaleX(1)';
+      setTimeout(finish, 350);
+      return;
+    }
+
+    // Animate 0 → 100 over ~1.25s with an ease-out curve.
+    const DURATION = 1250;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / DURATION, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = Math.round(eased * 100);
+      if (countEl) countEl.textContent = String(val);
+      if (fillEl) fillEl.style.transform = `scaleX(${eased})`;
+      if (t < 1) requestAnimationFrame(tick);
+      else setTimeout(finish, 180);
+    };
+    requestAnimationFrame(tick);
+
+    // Absolute safety: never trap the user behind the loader.
+    setTimeout(() => { if (document.body.contains(preface)) finish(); }, 4000);
+
+    // View Transitions cleanup.
+    const cleanup = () => { const el = document.getElementById('brand-preface'); if (el) el.remove(); };
     document.addEventListener('astro:before-preparation', cleanup);
     document.addEventListener('astro:after-swap', cleanup);
   })();

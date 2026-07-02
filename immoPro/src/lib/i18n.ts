@@ -164,6 +164,7 @@ export const translations = {
     'properties.filter.100_300m': '100M - 300M',
     'properties.filter.over_300m': 'Plus de 300M',
     'properties.bedrooms_short': 'chambres',
+    'properties.no_results': 'Aucun bien ne correspond à votre recherche.',
 
     // Property
     'property.watch_cinematic': 'Regarder le film cinématographique',
@@ -483,6 +484,7 @@ export const translations = {
     'properties.filter.100_300m': '100M - 300M',
     'properties.filter.over_300m': 'Over 300M',
     'properties.bedrooms_short': 'bedrooms',
+    'properties.no_results': 'No properties match your search.',
 
     // Property
     'property.watch_cinematic': 'Watch the cinematic film',

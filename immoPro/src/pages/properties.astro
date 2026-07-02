@@ -1,5 +1,15 @@
 ---
+export const prerender = false;
+
 import MainLayout from '../layouts/MainLayout.astro';
+import { getPublishedProperties, type PropertyView } from '../lib/queries.ts';
+
+const properties: PropertyView[] = await getPublishedProperties();
+
+// Trimmed payload for the client-side favorites store (kept small on purpose).
+const favData = properties.map((p) => ({
+  id: p.id, title: p.title, city: p.city, surface: p.surface, image: p.image, price: p.price
+}));
 ---
 
 <MainLayout title="Biens • ImmoPro">
@@ -7,8 +17,8 @@ import MainLayout from '../layouts/MainLayout.astro';
     <h1 data-kinetic="letters" data-i18n="properties.title" class="serif text-5xl tracking-tight mb-8">Nos biens d’exception</h1>
 
     <div class="flex flex-wrap gap-3 mb-8">
-      <input id="search" type="text" placeholder="Rechercher..." data-i18n-placeholder="properties.search_placeholder" class="flex-1 min-w-[220px] border border-border px-4 py-2 rounded-xl text-sm" />
-      <select id="price-filter" class="border border-border px-4 py-2 rounded-xl text-sm">
+      <input id="search" type="text" placeholder="Rechercher..." data-i18n-placeholder="properties.search_placeholder" class="flex-1 min-w-[220px] border border-border px-4 py-2 rounded-xl text-sm bg-background focus:outline-none focus:border-foreground transition-colors" />
+      <select id="price-filter" class="border border-border px-4 py-2 rounded-xl text-sm bg-background">
         <option value="all" data-i18n="properties.filter.all">Tous les prix</option>
         <option value="100" data-i18n="properties.filter.under_100m">Moins de 100M</option>
         <option value="300" data-i18n="properties.filter.100_300m">100M - 300M</option>
@@ -17,85 +27,92 @@ import MainLayout from '../layouts/MainLayout.astro';
     </div>
 
     <div id="grid" class="grid md:grid-cols-3 gap-8">
-      <!-- Populated by script -->
+      {properties.map((p) => (
+        <div
+          class="property-card group border border-border rounded-2xl overflow-hidden elevate"
+          data-id={p.id}
+          data-title={p.title.toLowerCase()}
+          data-city={p.city.toLowerCase()}
+          data-price={p.price}
+        >
+          <div class="relative">
+            <img src={p.image} alt={p.title} loading="lazy" class="w-full aspect-[16/10] object-cover" />
+            <button data-heart={p.id} class="heart absolute top-4 right-4 text-2xl text-white/90 cursor-pointer transition-transform hover:scale-110 active:scale-95" aria-label="Favori">♡</button>
+          </div>
+          <a href={`/properties/${p.id}`} class="block p-5">
+            <h3 class="serif text-xl">{p.title}</h3>
+            <p class="text-sm text-foreground/60 mt-1">{p.city} · {p.surface} m²{p.rooms ? ` · ${p.rooms} ch.` : ''}</p>
+            <div class="mt-4 font-medium">{new Intl.NumberFormat('fr-FR').format(p.price)} FCFA</div>
+          </a>
+        </div>
+      ))}
     </div>
+
+    <p id="no-results" class="hidden text-foreground/60 mt-10 text-center" data-i18n="properties.no_results">Aucun bien ne correspond à votre recherche.</p>
+
+    <script type="application/json" id="fav-data" set:html={JSON.stringify(favData)}></script>
   </div>
 
   <script>
-    import { getProperties, type Property } from '../lib/data.ts';
     import { toggleFavorite, isFavorited } from '../lib/favorites.ts';
 
-    let properties: Property[] = [];
+    function favMap(): Record<string, any> {
+      const el = document.getElementById('fav-data');
+      if (!el) return {};
+      try {
+        return (JSON.parse(el.textContent || '[]') as any[]).reduce((m, p) => { m[p.id] = p; return m; }, {} as Record<string, any>);
+      } catch { return {}; }
+    }
 
-    function render(filtered: Property[]) {
+    function applyFilter() {
+      const search = document.getElementById('search') as HTMLInputElement | null;
+      const priceFilter = document.getElementById('price-filter') as HTMLSelectElement | null;
       const grid = document.getElementById('grid');
+      const noResults = document.getElementById('no-results');
       if (!grid) return;
-      grid.innerHTML = filtered.map((p: Property) => `
-        <div class="property-card group border border-border rounded-2xl overflow-hidden" data-id="${p.id}">
-          <div class="relative">
-            <img src="${p.image}" class="w-full aspect-[16/10] object-cover" />
-            <button data-heart="${p.id}" class="heart absolute top-4 right-4 text-2xl text-white/90 cursor-pointer transition-transform hover:scale-110 active:scale-95">${isFavorited(p.id) ? '♥' : '♡'}</button>
-          </div>
-          <a href="/properties/${p.id}" class="block p-5">
-            <h3 class="serif text-xl">${p.title}</h3>
-            <p class="text-sm text-foreground/60 mt-1">${p.city} · ${p.surface} m²</p>
-            <div class="mt-4 font-medium">${new Intl.NumberFormat('fr-FR').format(p.price)} FCFA</div>
-          </a>
-        </div>
-      `).join('');
 
-      // Attach heart listeners
-      grid.querySelectorAll('[data-heart]').forEach(btn => {
+      const term = (search?.value || '').toLowerCase().trim();
+      const mode = priceFilter?.value || 'all';
+      let visible = 0;
+
+      grid.querySelectorAll<HTMLElement>('.property-card').forEach((card) => {
+        const title = card.dataset.title || '';
+        const city = card.dataset.city || '';
+        const price = Number(card.dataset.price || 0);
+        let ok = term === '' || title.includes(term) || city.includes(term);
+        if (mode === '100') ok = ok && price < 100_000_000;
+        else if (mode === '300') ok = ok && price >= 100_000_000 && price <= 300_000_000;
+        else if (mode === 'high') ok = ok && price > 300_000_000;
+        card.classList.toggle('hidden', !ok);
+        if (ok) visible++;
+      });
+
+      noResults?.classList.toggle('hidden', visible > 0);
+    }
+
+    function initHearts() {
+      const map = favMap();
+      document.querySelectorAll('[data-heart]').forEach((btn) => {
         const id = btn.getAttribute('data-heart');
+        if (!id) return;
+        btn.textContent = isFavorited(id) ? '♥' : '♡';
         btn.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          const prop = properties.find((x: Property) => x.id === id);
-          if (prop) {
-            toggleFavorite(prop);
-            filter();
-          }
+          const prop = map[id];
+          if (prop) btn.textContent = toggleFavorite(prop) ? '♥' : '♡';
         });
       });
     }
 
-    function filter() {
-      const searchEl = document.getElementById('search') as HTMLInputElement;
-      const filterEl = document.getElementById('price-filter') as HTMLSelectElement;
-      if (!searchEl || !filterEl) return;
-
-      const term = (searchEl.value || '').toLowerCase();
-      const priceMode = filterEl.value;
-
-      const filtered = properties.filter((p: Property) => {
-        const matchesTerm = p.title.toLowerCase().includes(term) || p.city.toLowerCase().includes(term);
-        let matchesPrice = true;
-        if (priceMode === '100') matchesPrice = p.price < 100000000;
-        if (priceMode === '300') matchesPrice = p.price >= 100000000 && p.price <= 300000000;
-        if (priceMode === 'high') matchesPrice = p.price > 300000000;
-        return matchesTerm && matchesPrice;
-      });
-
-      render(filtered);
-    }
-
     function init() {
-      properties = getProperties();
-      
-      const searchEl = document.getElementById('search');
-      const filterEl = document.getElementById('price-filter');
-      
-      searchEl?.addEventListener('input', filter);
-      filterEl?.addEventListener('change', filter);
-
-      render(properties);
+      document.getElementById('search')?.addEventListener('input', applyFilter);
+      document.getElementById('price-filter')?.addEventListener('change', applyFilter);
+      initHearts();
+      applyFilter();
     }
 
     document.addEventListener('astro:page-load', init);
-    document.addEventListener('immopro:locale-changed', () => {
-      // Re-render the grid so any future i18n keys inside cards take effect.
-      if (properties.length) filter();
-    });
     init();
   </script>
 </MainLayout>
