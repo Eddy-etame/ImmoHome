@@ -101,6 +101,29 @@ const canonicalUrl = Astro.url.href;
     applyLightMode();
     document.addEventListener('astro:after-swap', applyLightMode);
 
+    // === Immersive smooth scrolling (Lenis) — momentum, synced to rAF ===
+    import Lenis from 'lenis';
+    async function setupSmoothScroll() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if ((window as any).__lenis) return;
+      const lenis = new Lenis({
+        lerp: 0.085,
+        wheelMultiplier: 1,
+        smoothWheel: true,
+        // Native inertia on touch feels better than JS smoothing on mobile.
+        syncTouch: false,
+      });
+      (window as any).__lenis = lenis;
+      function raf(time: number) { lenis.raf(time); requestAnimationFrame(raf); }
+      requestAnimationFrame(raf);
+      // Content height changes across view-transition swaps.
+      document.addEventListener('astro:after-swap', () => {
+        (window as any).__lenis?.scrollTo(0, { immediate: true });
+        requestAnimationFrame(() => (window as any).__lenis?.resize());
+      });
+    }
+    setupSmoothScroll();
+
     // === Full Lively Text Animations (re-triggers on every reload & navigation) ===
     function initLivelyTextAnimations() {
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

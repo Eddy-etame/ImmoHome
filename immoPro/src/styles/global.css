@@ -96,6 +96,13 @@ h1, h2, h3, .serif {
   --ease-ink: cubic-bezier(0.23, 1.0, 0.32, 1);
 }
 
+/* Lenis smooth scroll */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-smooth iframe { pointer-events: none; }
+
 .elevate {
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), 
               box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
