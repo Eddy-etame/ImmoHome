@@ -80,6 +80,7 @@
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
+  overflow-x: clip; /* safety net against any section causing horizontal scroll */
 }
 
 h1, h2, h3, .serif {
