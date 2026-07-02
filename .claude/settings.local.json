@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(git config user.email \"etame.eddy01@gmail.com\")",
+      "PowerShell(git config user.name \"Eddy-etame\")",
+      "PowerShell(git branch -M main)",
+      "PowerShell(git remote remove origin 2>$null)",
+      "PowerShell(git remote add origin https://github.com/Eddy-etame/ImmoHome.git)",
+      "Bash(node -e ' *)"
+    ]
+  }
+}
