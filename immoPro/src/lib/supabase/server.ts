@@ -14,9 +14,12 @@ export function createSupabaseServerClient(context: {
 }) {
   const { request, cookies } = context;
 
+  const url = import.meta.env.PUBLIC_SUPABASE_URL || (globalThis as any).process?.env?.PUBLIC_SUPABASE_URL;
+  const anon = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || (globalThis as any).process?.env?.PUBLIC_SUPABASE_ANON_KEY;
+
   return createServerClient<Database>(
-    import.meta.env.PUBLIC_SUPABASE_URL,
-    import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+    url,
+    anon,
     {
       cookies: {
         getAll() {

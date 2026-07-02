@@ -7,9 +7,14 @@ import type { Database } from '../database.types';
  * Security, so use it exclusively inside API routes/SSR for privileged,
  * owner-gated operations (audit log writes, maintenance actions, seeding).
  */
+const ADMIN_URL =
+  import.meta.env.PUBLIC_SUPABASE_URL || (globalThis as any).process?.env?.PUBLIC_SUPABASE_URL;
+const SERVICE_KEY =
+  import.meta.env.SUPABASE_SERVICE_ROLE_KEY || (globalThis as any).process?.env?.SUPABASE_SERVICE_ROLE_KEY;
+
 export const supabaseAdmin = createClient<Database>(
-  import.meta.env.PUBLIC_SUPABASE_URL,
-  import.meta.env.SUPABASE_SERVICE_ROLE_KEY,
+  ADMIN_URL,
+  SERVICE_KEY,
   {
     auth: {
       autoRefreshToken: false,

@@ -6,11 +6,13 @@ import type { Database, PropertyType, PropertyStatus } from './database.types';
  * frontmatter / API routes). No session, so RLS applies the `anon` role —
  * only published rows are visible.
  */
-const sb = createClient<Database>(
-  import.meta.env.PUBLIC_SUPABASE_URL,
-  import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
-  { auth: { persistSession: false } }
-);
+// Resolve env at build (inlined) or at runtime (Vercel serverless process.env).
+const SUPABASE_URL =
+  import.meta.env.PUBLIC_SUPABASE_URL || (globalThis as any).process?.env?.PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON =
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY || (globalThis as any).process?.env?.PUBLIC_SUPABASE_ANON_KEY;
+
+const sb = createClient<Database>(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: false } });
 
 /** UI-facing property shape (camelCase), decoupled from DB column names. */
 export interface PropertyView {
