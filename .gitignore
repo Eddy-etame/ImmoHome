@@ -41,6 +41,9 @@ ehthumbs.db
 # Cursor specific
 .cursor/
 
+# Claude Code local (machine-specific) settings
+.claude/settings.local.json
+
 # Rendered video output
 *.mp4
 *.webm
