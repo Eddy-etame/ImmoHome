@@ -16,8 +16,10 @@ const supabase = createClient(env.PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE
   auth: { autoRefreshToken: false, persistSession: false }
 });
 
-const EMAIL = 'admin@immopro.cm';
-const PASSWORD = 'Immopro2026!';
+// Usage: node scripts/create-admin.mjs [email] [password] [fullName]
+const EMAIL = process.argv[2] || 'admin@immopro.cm';
+const PASSWORD = process.argv[3] || 'Immopro2026!';
+const FULL_NAME = process.argv[4] || 'ImmoPro Admin';
 
 async function main() {
   let userId = null;
@@ -26,7 +28,7 @@ async function main() {
     email: EMAIL,
     password: PASSWORD,
     email_confirm: true,
-    user_metadata: { full_name: 'ImmoPro Admin' }
+    user_metadata: { full_name: FULL_NAME }
   });
 
   if (error) {
@@ -45,7 +47,7 @@ async function main() {
   // signup trigger was skipped during migration).
   const { error: pErr } = await supabase
     .from('profiles')
-    .upsert({ id: userId, email: EMAIL, full_name: 'ImmoPro Admin', role: 'owner' });
+    .upsert({ id: userId, email: EMAIL, full_name: FULL_NAME, role: 'owner' });
   if (pErr) { console.error('profile upsert failed:', pErr.message); process.exit(1); }
 
   // Verify
