@@ -1,21 +1,20 @@
 ---
-import MainLayout from '../../layouts/MainLayout.astro';
-import { INITIAL_PROPERTIES, type Property } from '../../lib/data.ts';
+export const prerender = false;
 
-export function getStaticPaths() {
-  return INITIAL_PROPERTIES.map((p: Property) => ({
-    params: { id: p.id },
-    props: { property: p }
-  }));
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getPropertyBySlug, getPublishedProperties, pickSimilar, type PropertyView } from '../../lib/queries.ts';
+
+const { id } = Astro.params;
+const property = id ? await getPropertyBySlug(id) : null;
+
+// Unknown / unpublished property → styled 404.
+if (!property) {
+  return Astro.redirect('/404');
 }
 
-const { property } = Astro.props;
-
-// Compute similar properties (same city OR same type), excluding self, closest by price, max 3.
-const similar: Property[] = INITIAL_PROPERTIES
-  .filter((p: Property) => p.id !== property.id && (p.city === property.city || p.type === property.type))
-  .sort((a: Property, b: Property) => Math.abs(a.price - property.price) - Math.abs(b.price - property.price))
-  .slice(0, 3);
+// Similar properties (same city OR type), closest by price, max 3.
+const all = await getPublishedProperties();
+const similar: PropertyView[] = pickSimilar(property, all, 3);
 ---
 
 <MainLayout 
@@ -186,7 +185,7 @@ const similar: Property[] = INITIAL_PROPERTIES
           <p class="text-sm text-foreground/60 mt-2" data-i18n="property.similar_subtitle">D'autres opportunités pourraient vous intéresser</p>
         </div>
         <div class="grid md:grid-cols-3 gap-8">
-          {similar.map((p: Property, idx: number) => (
+          {similar.map((p: PropertyView, idx: number) => (
             <a href={`/properties/${p.id}`} class="group border border-border rounded-2xl overflow-hidden reveal elevate block" style={`--i:${idx + 1}`}>
               <div class="relative aspect-[16/10] overflow-hidden">
                 <img src={p.image} alt={p.title} class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
