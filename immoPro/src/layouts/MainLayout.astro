@@ -89,18 +89,14 @@ const canonicalUrl = Astro.url.href;
       setupViewTransitions();
     }
 
-    // === Automatic Dark Mode (prefers-color-scheme: dark, correctly wired) ===
-    function applyDarkMode() {
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+    // ImmoPro ships its intended light "Paper & Ink" identity by default — the
+    // gallery-grade editorial look. Dark styles remain in the CSS but are not
+    // auto-applied from the OS (that path produced flat, low-contrast sections).
+    function applyLightMode() {
+      document.documentElement.classList.remove('dark');
     }
-
-    applyDarkMode();
-    document.addEventListener('astro:after-swap', applyDarkMode);
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyDarkMode);
+    applyLightMode();
+    document.addEventListener('astro:after-swap', applyLightMode);
 
     // === Full Lively Text Animations (re-triggers on every reload & navigation) ===
     function initLivelyTextAnimations() {
