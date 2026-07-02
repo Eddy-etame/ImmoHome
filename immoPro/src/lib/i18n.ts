@@ -203,6 +203,7 @@ export const translations = {
     'property.film_modal_note': 'Contenu Remotion / 3D à afficher ici.',
     'property.film_modal_placeholder': '[Remotion Video Player placeholder]',
     'property.film_modal_close': 'Fermer',
+    'property.film_soon': 'Production cinématographique · sur demande',
     'property.booking_alert': 'Formulaire de réservation à intégrer (Phase 5 - Espace Agent).',
 
     // Footer
@@ -539,6 +540,7 @@ export const translations = {
     'property.film_modal_note': 'Remotion / 3D content to be displayed here.',
     'property.film_modal_placeholder': '[Remotion Video Player placeholder]',
     'property.film_modal_close': 'Close',
+    'property.film_soon': 'Cinematic production · on request',
     'property.booking_alert': 'Booking form to be integrated (Phase 5 - Agent area).',
 
     // Footer

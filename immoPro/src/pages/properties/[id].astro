@@ -239,6 +239,7 @@ const similar: PropertyView[] = pickSimilar(property, all, 3);
     .book-dialog[open] { animation: book-pop 260ms cubic-bezier(0.22, 1, 0.36, 1); }
     @keyframes book-pop { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: none; } }
     @media (prefers-reduced-motion: reduce) { .book-dialog[open] { animation: none; } }
+    @keyframes film-fade { from { opacity: 0; } to { opacity: 1; } }
   </style>
 
   <script>
@@ -268,20 +269,33 @@ const similar: PropertyView[] = pickSimilar(property, all, 3);
         btn.addEventListener('click', () => {
           const type = (btn as HTMLElement).dataset.film;
           const titleKey = type === '3d' ? 'property.film_modal_3d' : 'property.film_modal_default';
+          const poster = (document.querySelector('main img') as HTMLImageElement | null)?.src || '';
           const modal = document.createElement('div');
-          modal.className = 'fixed inset-0 z-[999] bg-black/95 flex items-center justify-center p-6 transition-all duration-300';
+          modal.className = 'fixed inset-0 z-[999] bg-black/90 flex items-center justify-center p-6';
+          modal.style.animation = 'film-fade .3s ease';
           modal.innerHTML = `
-            <div class="max-w-4xl w-full bg-card border border-border rounded-3xl p-8 text-center animate-in fade-in zoom-in duration-300">
-              <div class="text-2xl serif mb-4" data-i18n="${titleKey}">Film</div>
-              <div class="text-foreground/70 mb-6" data-i18n="property.film_modal_note">Contenu à afficher ici.</div>
-              <div class="aspect-video w-full bg-black/50 border border-border rounded-2xl flex items-center justify-center mb-6 text-foreground/45 font-mono text-sm" data-i18n="property.film_modal_placeholder">
-                [Remotion Video Player placeholder]
+            <div class="max-w-4xl w-full">
+              <div class="flex items-baseline justify-between mb-4">
+                <div class="text-2xl serif text-white" data-i18n="${titleKey}">Film</div>
+                <button data-close class="text-white/60 hover:text-white text-sm uppercase tracking-widest cursor-pointer" data-i18n="property.film_modal_close">Fermer</button>
               </div>
-              <button class="px-8 py-3 bg-foreground text-background font-medium rounded-xl text-sm tracking-wider hover:bg-foreground/90 transition-colors cursor-pointer" data-i18n="property.film_modal_close">Fermer</button>
+              <div class="relative aspect-video w-full rounded-3xl overflow-hidden border border-white/10">
+                <img src="${poster}" alt="" class="absolute inset-0 w-full h-full object-cover scale-105" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40"></div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center gap-4 text-white">
+                  <div class="w-[70px] h-[70px] rounded-full bg-white/12 backdrop-blur border border-white/30 grid place-items-center transition-transform hover:scale-110 cursor-pointer">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  </div>
+                  <div class="text-[11px] uppercase tracking-[0.28em] text-white/85" data-i18n="property.film_soon">Production cinématographique · sur demande</div>
+                </div>
+              </div>
             </div>
           `;
           document.body.appendChild(modal);
-          modal.querySelector('button')?.addEventListener('click', () => modal.remove());
+          const close = () => modal.remove();
+          modal.querySelector('[data-close]')?.addEventListener('click', close);
+          modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+          document.addEventListener('keydown', function esc(ev) { if (ev.key === 'Escape') { close(); document.removeEventListener('keydown', esc); } });
           // Re-apply i18n so the freshly injected nodes get translated
           window.dispatchEvent(new CustomEvent('immopro:locale-changed'));
         });
