@@ -23,6 +23,12 @@ export const translations = {
     'section.selection.desc': 'Quelques biens choisis avec soin.',
     'section.engagement': 'Engagement & Transparence',
     'section.unique': 'Ce qui rend nos biens uniques',
+    'home.engage.visit.title': 'Visite personnelle',
+    'home.engage.visit.desc': 'Nous ne listons jamais un bien sans l’avoir visité et validé nous-mêmes.',
+    'home.engage.price.title': 'Prix vérifiés',
+    'home.engage.price.desc': 'Chaque prix de présentation est audité pour correspondre aux réalités du marché camerounais.',
+    'home.engage.support.title': 'Accompagnement',
+    'home.engage.support.desc': 'De la signature chez le notaire à l’installation définitive, nous restons à vos côtés.',
 
     // Common
     'common.watch_film': 'Regarder le film d’exception',
@@ -348,6 +354,12 @@ export const translations = {
     'section.selection.desc': 'A few carefully chosen properties.',
     'section.engagement': 'Commitment & Transparency',
     'section.unique': 'What makes our properties unique',
+    'home.engage.visit.title': 'Personal viewing',
+    'home.engage.visit.desc': 'We never list a property without having visited and vetted it ourselves.',
+    'home.engage.price.title': 'Verified pricing',
+    'home.engage.price.desc': 'Every listing price is audited against the realities of the Cameroonian market.',
+    'home.engage.support.title': 'End-to-end support',
+    'home.engage.support.desc': 'From the notary’s signing to final move-in, we stay by your side.',
 
     // Common
     'common.watch_film': 'Watch the cinematic film',

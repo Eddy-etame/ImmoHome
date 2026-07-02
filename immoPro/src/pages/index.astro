@@ -65,21 +65,26 @@ const favData = featured.map((p) => ({
       <a href="/properties" class="text-sm hover:text-[#0F766E] ink-link reveal" data-i18n="cta.explore">Explorer les biens disponibles →</a>
     </div>
 
-    <div class="grid md:grid-cols-3 gap-8">
+    <div class="grid md:grid-cols-3 gap-6 md:gap-8">
       {featured.map((p, idx) => (
-        <div class="property-card group border border-border rounded-2xl overflow-hidden reveal elevate" data-id={p.id} style={`--i:${idx + 1}`}>
-          <div class="relative">
-            <img src={p.image} class="w-full aspect-[16/10] object-cover" />
-            <button data-heart={p.id} class="heart absolute top-4 right-4 text-2xl text-white/90 cursor-pointer transition-transform hover:scale-110 active:scale-95" aria-label="Favori">♡</button>
-          </div>
-          <a href={`/properties/${p.id}`} class="block p-5">
-            <h3 class="serif text-xl">{p.title}</h3>
-            <p class="text-sm text-foreground/60 mt-1">{p.city} · {p.surface} m² {p.rooms ? `· ${p.rooms} chambres` : ''}</p>
-            <div class="mt-4 flex justify-between items-baseline">
-              <div class="text-lg font-medium">{new Intl.NumberFormat('fr-FR').format(p.price)} FCFA</div>
-              <div class="text-xs text-foreground/50 group-hover:text-[#0F766E]">Voir →</div>
+        <div class="property-card group relative reveal" data-id={p.id} style={`--i:${idx + 1}`}>
+          <a href={`/properties/${p.id}`} class="block">
+            <div class="pc-media relative aspect-[4/3] overflow-hidden rounded-2xl bg-secondary">
+              <img src={p.image} alt={p.title} loading="lazy"
+                   class="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] group-hover:scale-[1.06]" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent transition-opacity duration-300"></div>
+              <span class="absolute top-4 left-4 text-[10px] uppercase tracking-[0.18em] text-white/90 bg-black/25 backdrop-blur px-3 py-1 rounded-full border border-white/15">{p.type}</span>
+              <div class="absolute bottom-4 left-4 right-4 text-white">
+                <h3 class="serif text-2xl leading-tight">{p.title}</h3>
+                <p class="text-xs text-white/85 mt-1">{p.city} · {p.surface} m²{p.rooms ? ` · ${p.rooms} ch.` : ''}</p>
+              </div>
             </div>
           </a>
+          <button data-heart={p.id} class="heart absolute top-3.5 right-3.5 w-9 h-9 grid place-items-center rounded-full bg-black/25 backdrop-blur border border-white/15 text-lg text-white cursor-pointer transition hover:bg-black/45 hover:scale-110 active:scale-95" aria-label="Ajouter aux favoris">♡</button>
+          <div class="flex items-baseline justify-between mt-4 px-1">
+            <div class="text-lg font-medium tracking-tight">{new Intl.NumberFormat('fr-FR').format(p.price)} <span class="text-xs font-normal text-foreground/50">FCFA</span></div>
+            <a href={`/properties/${p.id}`} class="text-[11px] uppercase tracking-[0.15em] text-foreground/55 group-hover:text-[#0F766E] transition-colors inline-flex items-center gap-1.5">Voir le bien <span class="card-arrow">→</span></a>
+          </div>
         </div>
       ))}
     </div>
@@ -118,21 +123,27 @@ const favData = featured.map((p) => ({
         <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2">02</div>
         <h3 data-kinetic="letters" data-i18n="section.engagement" class="serif text-4xl tracking-tight">Engagement & Transparence</h3>
       </div>
-      <div class="grid md:grid-cols-3 gap-8">
-        <div class="p-8 border border-border rounded-2xl group bg-background/50 hover:bg-background transition-all duration-300 reveal elevate" style="--i:1">
-          <div class="w-10 h-10 rounded-full bg-[#0F766E]/10 flex items-center justify-center mb-6">✧</div>
-          <h4 class="font-medium text-xl mb-3">Visite personnelle</h4>
-          <p class="text-foreground/70 text-sm">Nous ne listons jamais un bien sans l'avoir visité et validé nous-mêmes.</p>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="engage-card group p-8 border border-border rounded-2xl bg-background/60 reveal" style="--i:1">
+          <div class="engage-icon w-11 h-11 rounded-full bg-[#0F766E]/10 text-[#0F766E] flex items-center justify-center mb-6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <h4 class="font-medium text-xl mb-3" data-i18n="home.engage.visit.title">Visite personnelle</h4>
+          <p class="text-foreground/70 text-sm leading-relaxed" data-i18n="home.engage.visit.desc">Nous ne listons jamais un bien sans l'avoir visité et validé nous-mêmes.</p>
         </div>
-        <div class="p-8 border border-border rounded-2xl group bg-background/50 hover:bg-background transition-all duration-300 reveal elevate" style="--i:2">
-          <div class="w-10 h-10 rounded-full bg-[#0F766E]/10 flex items-center justify-center mb-6">✦</div>
-          <h4 class="font-medium text-xl mb-3">Prix vérifiés</h4>
-          <p class="text-foreground/70 text-sm">Chaque prix de présentation est audité pour correspondre aux réalités du marché camerounais.</p>
+        <div class="engage-card group p-8 border border-border rounded-2xl bg-background/60 reveal" style="--i:2">
+          <div class="engage-icon w-11 h-11 rounded-full bg-[#0F766E]/10 text-[#0F766E] flex items-center justify-center mb-6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/><path d="M9 12l2 2 4-4"/></svg>
+          </div>
+          <h4 class="font-medium text-xl mb-3" data-i18n="home.engage.price.title">Prix vérifiés</h4>
+          <p class="text-foreground/70 text-sm leading-relaxed" data-i18n="home.engage.price.desc">Chaque prix de présentation est audité pour correspondre aux réalités du marché camerounais.</p>
         </div>
-        <div class="p-8 border border-border rounded-2xl group bg-background/50 hover:bg-background transition-all duration-300 reveal elevate" style="--i:3">
-          <div class="w-10 h-10 rounded-full bg-[#0F766E]/10 flex items-center justify-center mb-6">✦</div>
-          <h4 class="font-medium text-xl mb-3">Accompagnement</h4>
-          <p class="text-foreground/70 text-sm">De la signature chez le notaire à l'installation définitive, nous restons à vos côtés.</p>
+        <div class="engage-card group p-8 border border-border rounded-2xl bg-background/60 reveal" style="--i:3">
+          <div class="engage-icon w-11 h-11 rounded-full bg-[#0F766E]/10 text-[#0F766E] flex items-center justify-center mb-6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5 5-2Z"/></svg>
+          </div>
+          <h4 class="font-medium text-xl mb-3" data-i18n="home.engage.support.title">Accompagnement</h4>
+          <p class="text-foreground/70 text-sm leading-relaxed" data-i18n="home.engage.support.desc">De la signature chez le notaire à l'installation définitive, nous restons à vos côtés.</p>
         </div>
       </div>
     </div>
@@ -395,6 +406,27 @@ const favData = featured.map((p) => ({
     .hero-scroll-line { display: block; width: 1px; height: 100%; background: linear-gradient(var(--foreground), transparent); animation: hero-scroll-move 1.9s ease-in-out infinite; }
     @keyframes hero-scroll-move { 0% { transform: translateY(-100%); } 100% { transform: translateY(120%); } }
     @media (prefers-reduced-motion: reduce) { .hero-scroll-line { animation: none; } }
+
+    /* Featured property cards */
+    .pc-media {
+      transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .5s cubic-bezier(.22,1,.36,1);
+      box-shadow: 0 12px 32px -20px rgb(0 0 0 / 0.28);
+    }
+    .property-card:hover .pc-media { transform: translateY(-5px); box-shadow: 0 36px 64px -30px rgb(0 0 0 / 0.42); }
+    .card-arrow { display: inline-block; transition: transform .35s cubic-bezier(.22,1,.36,1); }
+    .property-card:hover .card-arrow { transform: translateX(4px); }
+    @media (prefers-reduced-motion: reduce) {
+      .pc-media, .property-card:hover .pc-media { transition: none; transform: none; }
+    }
+
+    /* Engagement cards */
+    .engage-card { transition: transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s, border-color .4s; }
+    .engage-card:hover { transform: translateY(-4px); border-color: color-mix(in oklab, #0F766E 32%, var(--border)); box-shadow: 0 30px 60px -32px rgb(0 0 0 / 0.3); }
+    .engage-icon { transition: transform .4s cubic-bezier(.22,1,.36,1), background-color .3s; }
+    .engage-card:hover .engage-icon { transform: scale(1.08) rotate(-3deg); background-color: color-mix(in oklab, #0F766E 18%, transparent); }
+    @media (prefers-reduced-motion: reduce) {
+      .engage-card, .engage-card:hover, .engage-icon, .engage-card:hover .engage-icon { transition: none; transform: none; }
+    }
 
     /* Testimonial marquee - CSS-only seamless loop */
     .testimonial-marquee {
