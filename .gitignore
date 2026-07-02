@@ -52,3 +52,8 @@ ehthumbs.db
 .cache/
 temp/
 tmp/
+
+# Local reference material — kept on disk to harvest components/patterns,
+# but not tracked in this repo (they are upstream third-party projects).
+magicui/
+remotion-skills/
