@@ -26,24 +26,32 @@ const favData = properties.map((p) => ({
       </select>
     </div>
 
-    <div id="grid" class="grid md:grid-cols-3 gap-8">
+    <div id="grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
       {properties.map((p) => (
         <div
-          class="property-card group border border-border rounded-2xl overflow-hidden elevate"
+          class="property-card group relative"
           data-id={p.id}
           data-title={p.title.toLowerCase()}
           data-city={p.city.toLowerCase()}
           data-price={p.price}
         >
-          <div class="relative">
-            <img src={p.image} alt={p.title} loading="lazy" class="w-full aspect-[16/10] object-cover" />
-            <button data-heart={p.id} class="heart absolute top-4 right-4 text-2xl text-white/90 cursor-pointer transition-transform hover:scale-110 active:scale-95" aria-label="Favori">♡</button>
-          </div>
-          <a href={`/properties/${p.id}`} class="block p-5">
-            <h3 class="serif text-xl">{p.title}</h3>
-            <p class="text-sm text-foreground/60 mt-1">{p.city} · {p.surface} m²{p.rooms ? ` · ${p.rooms} ch.` : ''}</p>
-            <div class="mt-4 font-medium">{new Intl.NumberFormat('fr-FR').format(p.price)} FCFA</div>
+          <a href={`/properties/${p.id}`} class="block">
+            <div class="pc-media relative aspect-[4/3] overflow-hidden rounded-2xl bg-secondary">
+              <img src={p.image} alt={p.title} loading="lazy"
+                   class="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] group-hover:scale-[1.06]" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent"></div>
+              <span class="absolute top-4 left-4 text-[10px] uppercase tracking-[0.18em] text-white/90 bg-black/25 backdrop-blur px-3 py-1 rounded-full border border-white/15">{p.type}</span>
+              <div class="absolute bottom-4 left-4 right-4 text-white">
+                <h3 class="serif text-2xl leading-tight">{p.title}</h3>
+                <p class="text-xs text-white/85 mt-1">{p.city} · {p.surface} m²{p.rooms ? ` · ${p.rooms} ch.` : ''}</p>
+              </div>
+            </div>
           </a>
+          <button data-heart={p.id} class="heart absolute top-3.5 right-3.5 w-9 h-9 grid place-items-center rounded-full bg-black/25 backdrop-blur border border-white/15 text-lg text-white cursor-pointer transition hover:bg-black/45 hover:scale-110 active:scale-95" aria-label="Ajouter aux favoris">♡</button>
+          <div class="flex items-baseline justify-between mt-4 px-1">
+            <div class="text-lg font-medium tracking-tight">{new Intl.NumberFormat('fr-FR').format(p.price)} <span class="text-xs font-normal text-foreground/50">FCFA</span></div>
+            <a href={`/properties/${p.id}`} class="text-[11px] uppercase tracking-[0.15em] text-foreground/55 group-hover:text-[#0F766E] transition-colors inline-flex items-center gap-1.5">Voir le bien <span class="card-arrow">→</span></a>
+          </div>
         </div>
       ))}
     </div>

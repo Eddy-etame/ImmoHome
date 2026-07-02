@@ -105,6 +105,18 @@ h1, h2, h3, .serif {
   box-shadow: 0 14px 30px -12px rgb(0 0 0 / 0.08);
 }
 
+/* Property cards — shared across homepage + listing */
+.pc-media {
+  transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .5s cubic-bezier(.22,1,.36,1);
+  box-shadow: 0 12px 32px -20px rgb(0 0 0 / 0.28);
+}
+.property-card:hover .pc-media { transform: translateY(-5px); box-shadow: 0 36px 64px -30px rgb(0 0 0 / 0.42); }
+.card-arrow { display: inline-block; transition: transform .35s cubic-bezier(.22,1,.36,1); }
+.property-card:hover .card-arrow { transform: translateX(4px); }
+@media (prefers-reduced-motion: reduce) {
+  .pc-media, .property-card:hover .pc-media { transition: none; transform: none; }
+}
+
 .ink-link {
   position: relative;
   display: inline-block;
