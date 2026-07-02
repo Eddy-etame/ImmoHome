@@ -1,890 +1,563 @@
 ---
+export const prerender = false;
+
 import MainLayout from '../layouts/MainLayout.astro';
+import { createSupabaseServerClient } from '../lib/supabase/server.ts';
+
+// Server-side auth gate: only signed-in staff (agent/owner) see the dashboard.
+const supabase = createSupabaseServerClient({ request: Astro.request, cookies: Astro.cookies });
+const { data: { user } } = await supabase.auth.getUser();
+
+let isStaff = false;
+let displayName = '';
+if (user) {
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, full_name, email')
+    .eq('id', user.id)
+    .maybeSingle();
+  if (profile && (profile.role === 'agent' || profile.role === 'owner')) {
+    isStaff = true;
+    displayName = profile.full_name || profile.email || user.email || '';
+  }
+}
 ---
 
 <MainLayout title="Espace Agent • ImmoPro">
-  <!-- ============================================================
-       Passphrase gate (Phase 7.1) — shown until session is unlocked
-       ============================================================ -->
-  <div id="agent-gate" class="fixed inset-0 z-[200] bg-background flex items-center justify-center px-5">
-    <div class="max-w-md w-full">
-      <div class="text-[11px] uppercase tracking-[0.25em] text-foreground/45 mb-3" data-i18n="agent.gate.cover_tag">Accès réservé</div>
-      <h1 class="serif text-4xl tracking-tight mb-3" data-i18n="agent.gate.cover_title">Espace agent</h1>
-      <p class="text-sm text-foreground/65 mb-8" data-i18n="agent.gate.cover_note">Cette section est réservée aux collaborateurs ImmoPro.</p>
+  {!isStaff ? (
+    <!-- ===================== Login ===================== -->
+    <div class="min-h-[72vh] flex items-center justify-center px-5">
+      <div class="max-w-md w-full aura-glow">
+        <div class="text-[11px] uppercase tracking-[0.25em] text-foreground/45 mb-3">Accès réservé</div>
+        <h1 class="serif text-4xl md:text-5xl tracking-tight mb-3">Espace agent</h1>
+        <p class="text-sm text-foreground/65 mb-8">Connectez-vous avec vos identifiants ImmoPro.</p>
+        <form id="login-form" novalidate class="space-y-3">
+          <input id="login-email" type="email" required autocomplete="username" placeholder="Email"
+                 class="w-full border border-border px-4 py-3 rounded-xl text-sm bg-background focus:outline-none focus:border-foreground transition-colors" />
+          <input id="login-password" type="password" required autocomplete="current-password" placeholder="Mot de passe"
+                 class="w-full border border-border px-4 py-3 rounded-xl text-sm bg-background focus:outline-none focus:border-foreground transition-colors" />
+          <p id="login-error" class="text-xs text-destructive hidden">Identifiants incorrects.</p>
+          <button type="submit"
+                  class="w-full py-3 bg-foreground text-background font-medium rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer active:scale-[0.99]">
+            Se connecter
+          </button>
+        </form>
+      </div>
+    </div>
+  ) : (
+    <!-- ===================== Dashboard ===================== -->
+    <div id="agent-app" class="max-w-7xl mx-auto px-5 py-8">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 reveal">
+        <div>
+          <div class="text-xs tracking-[2px] text-[#0F766E]" data-i18n="agent.internal">INTERNE</div>
+          <h1 data-kinetic="letters" class="serif text-4xl tracking-tight" data-i18n="agent.dashboard">Tableau de bord</h1>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-sm text-foreground/60">{displayName}</div>
+          <button id="agent-lock-btn"
+                  class="text-xs uppercase tracking-wider text-foreground/55 hover:text-foreground border border-border hover:border-foreground px-3 py-2 rounded-lg cursor-pointer transition-colors">
+            Déconnexion
+          </button>
+        </div>
+      </div>
 
-      <form id="agent-gate-form" novalidate>
-        <input id="agent-gate-input" type="password" autocomplete="off" required
-               placeholder="Code d'accès"
-               data-i18n-placeholder="agent.gate.placeholder"
-               class="w-full border border-border px-4 py-3 rounded-xl text-sm bg-background focus:outline-none focus:border-foreground transition-colors" />
-        <p id="agent-gate-error" class="mt-3 text-xs text-destructive hidden" data-i18n="agent.gate.error">Code incorrect.</p>
-        <button type="submit"
-                class="w-full mt-4 py-3 bg-foreground text-background font-medium rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer"
-                data-i18n="agent.gate.button">
-          Déverrouiller
-        </button>
+      <!-- KPI cards -->
+      <div class="grid grid-cols-3 gap-4 mb-10">
+        <div class="border border-border bg-card/40 rounded-2xl p-5 reveal elevate" style="--i:1">
+          <div id="kpi-properties" class="serif text-4xl md:text-5xl text-[#0F766E]">—</div>
+          <div class="text-[11px] uppercase tracking-wider text-foreground/55 mt-1">Biens actifs</div>
+        </div>
+        <div class="border border-border bg-card/40 rounded-2xl p-5 reveal elevate" style="--i:2">
+          <div id="kpi-leads" class="serif text-4xl md:text-5xl text-[#0F766E]">—</div>
+          <div class="text-[11px] uppercase tracking-wider text-foreground/55 mt-1">Prospects</div>
+        </div>
+        <div class="border border-border bg-card/40 rounded-2xl p-5 reveal elevate" style="--i:3">
+          <div id="kpi-subs" class="serif text-4xl md:text-5xl text-[#0F766E]">—</div>
+          <div class="text-[11px] uppercase tracking-wider text-foreground/55 mt-1">Abonnés</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-1 border-b mb-8 overflow-x-auto">
+        <button data-tab="properties" class="tab-btn px-6 py-3 border-b-2 border-foreground font-medium whitespace-nowrap cursor-pointer" data-i18n="agent.properties_tab">Biens</button>
+        <button data-tab="clients" class="tab-btn px-6 py-3 text-foreground/60 whitespace-nowrap cursor-pointer" data-i18n="agent.clients_tab">Clients</button>
+        <button data-tab="appointments" class="tab-btn px-6 py-3 text-foreground/60 whitespace-nowrap cursor-pointer" data-i18n="agent.appointments_tab">Rendez-vous</button>
+        <button data-tab="analytics" class="tab-btn px-6 py-3 text-foreground/60 whitespace-nowrap cursor-pointer" data-i18n="agent.analytics_tab">Analytics & Subs</button>
+      </div>
+
+      <!-- Properties -->
+      <div data-panel="properties">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="serif text-2xl font-medium tracking-tight" data-i18n="agent.properties">Biens</h3>
+          <button id="btn-new-property" class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest cursor-pointer hover:bg-foreground/90 transition-colors" data-i18n="agent.new_property">+ Nouveau bien</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b text-left text-foreground/50">
+                <th class="py-3" data-i18n="agent.table.title">Titre</th>
+                <th data-i18n="agent.table.city">Ville</th>
+                <th data-i18n="agent.table.price">Prix</th>
+                <th class="text-right" data-i18n="agent.table.actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="properties-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Clients -->
+      <div data-panel="clients" class="hidden">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="serif text-2xl font-medium tracking-tight" data-i18n="agent.clients">Clients</h3>
+          <button id="btn-new-client" class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest cursor-pointer hover:bg-foreground/90 transition-colors" data-i18n="agent.new_client">+ Nouveau client</button>
+        </div>
+        <div id="clients-list" class="grid md:grid-cols-2 gap-4"></div>
+      </div>
+
+      <!-- Appointments -->
+      <div data-panel="appointments" class="hidden">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="serif text-2xl font-medium tracking-tight" data-i18n="agent.appointments">Rendez-vous</h3>
+          <button id="btn-new-appointment" class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest cursor-pointer hover:bg-foreground/90 transition-colors" data-i18n="agent.new_appointment">+ Nouveau rdv</button>
+        </div>
+        <div id="appointments-list" class="grid md:grid-cols-2 gap-4"></div>
+      </div>
+
+      <!-- Analytics -->
+      <div data-panel="analytics" class="hidden">
+        <div class="border border-border bg-card p-8 rounded-2xl">
+          <h3 class="serif text-2xl font-medium tracking-tight mb-4" data-i18n="agent.analytics_title">Analytics & Abonnés</h3>
+          <div id="analytics-content" class="space-y-4 text-sm"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Property modal -->
+    <dialog id="dlg-property" class="immopro-dialog">
+      <form id="form-property" method="dialog" class="immopro-dialog-form">
+        <h2 id="dlg-property-title" class="serif text-2xl tracking-tight mb-6">Nouveau bien</h2>
+        <input type="hidden" id="form-property-id" />
+        <div class="grid sm:grid-cols-2 gap-4">
+          <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Titre (FR)</span>
+            <input id="form-property-title" type="text" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" /></label>
+          <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Titre (EN)</span>
+            <input id="form-property-titleEn" type="text" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" /></label>
+          <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Ville</span>
+            <input id="form-property-city" type="text" required value="Douala" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" /></label>
+          <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Type</span>
+            <select id="form-property-type" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground">
+              <option value="VILLA">Villa</option>
+              <option value="APPARTEMENT">Appartement</option>
+              <option value="TERRAIN">Terrain</option>
+            </select></label>
+          <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Prix (FCFA)</span>
+            <input id="form-property-price" type="number" min="0" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" /></label>
+          <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Surface (m²)</span>
+            <input id="form-property-surface" type="number" min="0" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" /></label>
+          <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Pièces</span>
+            <input id="form-property-rooms" type="number" min="0" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" /></label>
+          <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Salles de bain</span>
+            <input id="form-property-bathrooms" type="number" min="0" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" /></label>
+          <label class="block sm:col-span-2"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Description (FR)</span>
+            <textarea id="form-property-description" rows="2" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground resize-y"></textarea></label>
+          <label class="block sm:col-span-2"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Image (URL)</span>
+            <input id="form-property-image" type="url" placeholder="https://…" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" /></label>
+        </div>
+        <div class="flex justify-end gap-3 mt-8 pt-5 border-t border-border">
+          <button type="button" data-close class="px-5 py-2.5 border border-border rounded-xl text-sm tracking-widest hover:border-foreground transition-colors cursor-pointer">Annuler</button>
+          <button type="submit" class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer">Enregistrer</button>
+        </div>
       </form>
-    </div>
-  </div>
+    </dialog>
 
-  <!-- ============================================================
-       Main dashboard — gated; revealed only after passphrase
-       ============================================================ -->
-  <div id="agent-app" class="max-w-7xl mx-auto px-5 py-8 hidden">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-      <div>
-        <div class="text-xs tracking-[2px] text-[#0F766E]" data-i18n="agent.internal">INTERNE</div>
-        <h1 data-kinetic="letters" class="serif text-4xl tracking-tight" data-i18n="agent.dashboard">Tableau de bord</h1>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="text-sm text-foreground/60" data-i18n="agent.connected_as">Connecté en tant que Jean-Pierre Mbala</div>
-        <button id="agent-lock-btn"
-                class="text-xs uppercase tracking-wider text-foreground/55 hover:text-foreground border border-border hover:border-foreground px-3 py-2 rounded-lg cursor-pointer transition-colors"
-                data-i18n="agent.gate.lock">
-          Verrouiller la session
-        </button>
-      </div>
-    </div>
-
-    <!-- Tabs -->
-    <div class="flex gap-1 border-b mb-8 overflow-x-auto">
-      <button data-tab="properties" class="tab-btn px-6 py-3 border-b-2 border-foreground font-medium whitespace-nowrap cursor-pointer" data-i18n="agent.properties_tab">Biens</button>
-      <button data-tab="clients" class="tab-btn px-6 py-3 text-foreground/60 whitespace-nowrap cursor-pointer" data-i18n="agent.clients_tab">Clients</button>
-      <button data-tab="appointments" class="tab-btn px-6 py-3 text-foreground/60 whitespace-nowrap cursor-pointer" data-i18n="agent.appointments_tab">Rendez-vous</button>
-      <button data-tab="videos" class="tab-btn px-6 py-3 text-foreground/60 whitespace-nowrap cursor-pointer" data-i18n="agent.videos_tab">Vidéos Remotion</button>
-      <button data-tab="analytics" class="tab-btn px-6 py-3 text-foreground/60 whitespace-nowrap cursor-pointer" data-i18n="agent.analytics_tab">Analytics & Subs</button>
-    </div>
-
-    <!-- Properties Tab -->
-    <div data-panel="properties" class="reveal">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="serif text-2xl font-medium tracking-tight" data-i18n="agent.properties">Biens</h3>
-        <button id="btn-new-property" class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest cursor-pointer hover:bg-foreground/90 transition-colors" data-i18n="agent.new_property">+ Nouveau bien</button>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b text-left text-foreground/50">
-              <th class="py-3" data-i18n="agent.table.title">Titre</th>
-              <th data-i18n="agent.table.city">Ville</th>
-              <th data-i18n="agent.table.price">Prix</th>
-              <th class="text-right" data-i18n="agent.table.actions">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="properties-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Clients Tab -->
-    <div data-panel="clients" class="hidden reveal">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="serif text-2xl font-medium tracking-tight" data-i18n="agent.clients">Clients</h3>
-        <button id="btn-new-client" class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest cursor-pointer hover:bg-foreground/90 transition-colors" data-i18n="agent.new_client">+ Nouveau client</button>
-      </div>
-      <div id="clients-list" class="grid md:grid-cols-2 gap-4"></div>
-    </div>
-
-    <!-- Appointments Tab -->
-    <div data-panel="appointments" class="hidden reveal">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="serif text-2xl font-medium tracking-tight" data-i18n="agent.appointments">Rendez-vous</h3>
-        <button id="btn-new-appointment" class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest cursor-pointer hover:bg-foreground/90 transition-colors" data-i18n="agent.new_appointment">+ Nouveau rdv</button>
-      </div>
-      <div id="appointments-list" class="grid md:grid-cols-2 gap-4"></div>
-    </div>
-
-    <!-- Videos Tab -->
-    <div data-panel="videos" class="hidden reveal">
-      <div class="border border-[#0F766E]/30 p-8 rounded-2xl bg-[#0a0a0a] text-white">
-        <div class="text-[#67E8F9] text-sm tracking-[2px] mb-2" data-i18n="agent.videos_section_tag">3D VIRTUAL TOURS</div>
-        <div class="text-xl mb-6" data-i18n="agent.videos_composition">Building3DTour Composition</div>
-        <button id="btn-generate-tour" class="px-8 py-3 bg-[#0F766E] rounded-xl text-sm tracking-widest cursor-pointer hover:bg-[#0F766E]/90 transition-colors" data-i18n="agent.videos_generate">GÉNÉRER LA VISITE 3D</button>
-        <div id="remotion-preview" class="mt-4 text-xs text-white/60" data-i18n="agent.videos_preview_label">Preview using animation lib (frame-based).</div>
-      </div>
-    </div>
-
-    <!-- Analytics -->
-    <div data-panel="analytics" class="hidden reveal">
-      <div class="border border-border bg-card p-8 rounded-2xl">
-        <h3 class="serif text-2xl font-medium tracking-tight mb-4" data-i18n="agent.analytics_title">Analytics & Abonnés</h3>
-        <div id="analytics-content" class="space-y-4 text-sm"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================================
-       Modal dialogs (Phase 5.1)
-       ============================================================ -->
-
-  <!-- Property form modal (new + edit) -->
-  <dialog id="dlg-property" class="immopro-dialog">
-    <form id="form-property" method="dialog" class="immopro-dialog-form">
-      <h2 id="dlg-property-title" class="serif text-2xl tracking-tight mb-6" data-i18n="agent.modal.new_property_title">Nouveau bien</h2>
-      <input type="hidden" id="form-property-id" />
-
-      <div class="grid sm:grid-cols-2 gap-4">
-        <label class="block">
-          <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.property.title_label">Titre (FR)</span>
-          <input id="form-property-title" type="text" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" />
-        </label>
-        <label class="block">
-          <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.property.title_en_label">Titre (EN)</span>
-          <input id="form-property-titleEn" type="text" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" />
-        </label>
-        <label class="block">
-          <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.property.city_label">Ville</span>
-          <input id="form-property-city" type="text" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" value="Douala" />
-        </label>
-        <label class="block">
-          <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.property.type_label">Type</span>
-          <select id="form-property-type" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground">
-            <option value="VILLA" data-i18n="agent.form.property.type_villa">Villa</option>
-            <option value="APPARTEMENT" data-i18n="agent.form.property.type_apartment">Appartement</option>
-            <option value="TERRAIN" data-i18n="agent.form.property.type_land">Terrain</option>
-          </select>
-        </label>
-        <label class="block">
-          <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.property.price_label">Prix (FCFA)</span>
-          <input id="form-property-price" type="number" min="0" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" />
-        </label>
-        <label class="block">
-          <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.property.surface_label">Surface (m²)</span>
-          <input id="form-property-surface" type="number" min="0" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" />
-        </label>
-        <label class="block">
-          <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.property.rooms_label">Pièces</span>
-          <input id="form-property-rooms" type="number" min="0" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" />
-        </label>
-        <label class="block">
-          <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.property.bathrooms_label">Salles de bain</span>
-          <input id="form-property-bathrooms" type="number" min="0" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" />
-        </label>
-        <label class="block sm:col-span-2">
-          <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.property.image_label">Image (URL)</span>
-          <input id="form-property-image" type="url" placeholder="https://…" data-i18n-placeholder="agent.form.property.image_placeholder"
-                 class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" />
-        </label>
-      </div>
-
-      <div class="flex justify-end gap-3 mt-8 pt-5 border-t border-border">
-        <button type="button" data-close class="px-5 py-2.5 border border-border rounded-xl text-sm tracking-widest hover:border-foreground transition-colors cursor-pointer" data-i18n="agent.modal.cancel">Annuler</button>
-        <button type="submit" class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer" data-i18n="agent.modal.save">Enregistrer</button>
-      </div>
-    </form>
-  </dialog>
-
-  <!-- Client form modal -->
-  <dialog id="dlg-client" class="immopro-dialog">
-    <form id="form-client" method="dialog" class="immopro-dialog-form">
-      <h2 class="serif text-2xl tracking-tight mb-6" data-i18n="agent.modal.new_client_title">Nouveau client</h2>
-
-      <div class="space-y-4">
-        <label class="block">
-          <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.client.name_label">Nom complet</span>
-          <input id="form-client-name" type="text" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" />
-        </label>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <label class="block">
-            <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.client.email_label">Email</span>
-            <input id="form-client-email" type="email" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" />
-          </label>
-          <label class="block">
-            <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.client.phone_label">Téléphone</span>
-            <input id="form-client-phone" type="tel" placeholder="+237 …" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" />
-          </label>
+    <!-- Client modal -->
+    <dialog id="dlg-client" class="immopro-dialog">
+      <form id="form-client" method="dialog" class="immopro-dialog-form">
+        <h2 class="serif text-2xl tracking-tight mb-6">Nouveau client</h2>
+        <div class="space-y-4">
+          <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Nom complet</span>
+            <input id="form-client-name" type="text" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" /></label>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Email</span>
+              <input id="form-client-email" type="email" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" /></label>
+            <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Téléphone</span>
+              <input id="form-client-phone" type="tel" placeholder="+237 …" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" /></label>
+          </div>
+          <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Source</span>
+            <select id="form-client-source" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground">
+              <option value="referral">Recommandation</option>
+              <option value="web">Site web</option>
+              <option value="agent">Agent</option>
+              <option value="other">Autre</option>
+            </select></label>
+          <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Notes</span>
+            <textarea id="form-client-notes" rows="2" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground resize-y"></textarea></label>
         </div>
-        <label class="block">
-          <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.client.source_label">Source</span>
-          <select id="form-client-source" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground">
-            <option value="referral" data-i18n="agent.form.client.source_referral">Recommandation</option>
-            <option value="web" data-i18n="agent.form.client.source_web">Site web</option>
-            <option value="agent" data-i18n="agent.form.client.source_agent">Agent</option>
-            <option value="other" data-i18n="agent.form.client.source_other">Autre</option>
-          </select>
-        </label>
-      </div>
-
-      <div class="flex justify-end gap-3 mt-8 pt-5 border-t border-border">
-        <button type="button" data-close class="px-5 py-2.5 border border-border rounded-xl text-sm tracking-widest hover:border-foreground transition-colors cursor-pointer" data-i18n="agent.modal.cancel">Annuler</button>
-        <button type="submit" class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer" data-i18n="agent.modal.save">Enregistrer</button>
-      </div>
-    </form>
-  </dialog>
-
-  <!-- Appointment form modal -->
-  <dialog id="dlg-appointment" class="immopro-dialog">
-    <form id="form-appointment" method="dialog" class="immopro-dialog-form">
-      <h2 class="serif text-2xl tracking-tight mb-6" data-i18n="agent.modal.new_appointment_title">Nouveau rendez-vous</h2>
-
-      <div class="space-y-4">
-        <div class="grid sm:grid-cols-2 gap-4">
-          <label class="block">
-            <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.appointment.date_label">Date</span>
-            <input id="form-appointment-date" type="date" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" />
-          </label>
-          <label class="block">
-            <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.appointment.property_label">Bien</span>
-            <select id="form-appointment-property" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground">
-              <!-- options populated dynamically -->
-            </select>
-          </label>
+        <div class="flex justify-end gap-3 mt-8 pt-5 border-t border-border">
+          <button type="button" data-close class="px-5 py-2.5 border border-border rounded-xl text-sm tracking-widest hover:border-foreground transition-colors cursor-pointer">Annuler</button>
+          <button type="submit" class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer">Enregistrer</button>
         </div>
-        <label class="block">
-          <span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5" data-i18n="agent.form.appointment.notes_label">Notes</span>
-          <textarea id="form-appointment-notes" rows="3"
-                    placeholder="Visite guidée, préparer dossier…"
-                    data-i18n-placeholder="agent.form.appointment.notes_placeholder"
-                    class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground resize-y"></textarea>
-        </label>
-      </div>
+      </form>
+    </dialog>
 
-      <div class="flex justify-end gap-3 mt-8 pt-5 border-t border-border">
-        <button type="button" data-close class="px-5 py-2.5 border border-border rounded-xl text-sm tracking-widest hover:border-foreground transition-colors cursor-pointer" data-i18n="agent.modal.cancel">Annuler</button>
-        <button type="submit" class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer" data-i18n="agent.modal.save">Enregistrer</button>
-      </div>
-    </form>
-  </dialog>
+    <!-- Appointment modal -->
+    <dialog id="dlg-appointment" class="immopro-dialog">
+      <form id="form-appointment" method="dialog" class="immopro-dialog-form">
+        <h2 class="serif text-2xl tracking-tight mb-6">Nouveau rendez-vous</h2>
+        <div class="space-y-4">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Date</span>
+              <input id="form-appointment-date" type="date" required class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground" /></label>
+            <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Bien</span>
+              <select id="form-appointment-property" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground"></select></label>
+          </div>
+          <label class="block"><span class="block text-xs uppercase tracking-wider text-foreground/55 mb-1.5">Notes</span>
+            <textarea id="form-appointment-notes" rows="3" placeholder="Visite guidée, préparer dossier…" class="w-full border border-border px-3 py-2 rounded-lg text-sm bg-background focus:outline-none focus:border-foreground resize-y"></textarea></label>
+        </div>
+        <div class="flex justify-end gap-3 mt-8 pt-5 border-t border-border">
+          <button type="button" data-close class="px-5 py-2.5 border border-border rounded-xl text-sm tracking-widest hover:border-foreground transition-colors cursor-pointer">Annuler</button>
+          <button type="submit" class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer">Enregistrer</button>
+        </div>
+      </form>
+    </dialog>
 
-  <!-- Confirm delete modal (generic, reused for properties/clients/appointments) -->
-  <dialog id="dlg-confirm" class="immopro-dialog immopro-dialog-narrow">
-    <form id="form-confirm" method="dialog" class="immopro-dialog-form">
-      <h2 class="serif text-2xl tracking-tight mb-4" data-i18n="agent.modal.confirm_delete_title">Confirmer la suppression</h2>
-      <p id="dlg-confirm-message" class="text-sm text-foreground/75 mb-6"></p>
+    <!-- Confirm delete modal -->
+    <dialog id="dlg-confirm" class="immopro-dialog immopro-dialog-narrow">
+      <form id="form-confirm" method="dialog" class="immopro-dialog-form">
+        <h2 class="serif text-2xl tracking-tight mb-4">Confirmer la suppression</h2>
+        <p id="dlg-confirm-message" class="text-sm text-foreground/75 mb-6"></p>
+        <div class="flex justify-end gap-3">
+          <button type="button" data-close class="px-5 py-2.5 border border-border rounded-xl text-sm tracking-widest hover:border-foreground transition-colors cursor-pointer">Annuler</button>
+          <button type="submit" class="px-6 py-2.5 bg-destructive text-destructive-foreground rounded-xl text-sm tracking-widest hover:bg-destructive/90 transition-colors cursor-pointer">Supprimer</button>
+        </div>
+      </form>
+    </dialog>
 
-      <div class="flex justify-end gap-3">
-        <button type="button" data-close class="px-5 py-2.5 border border-border rounded-xl text-sm tracking-widest hover:border-foreground transition-colors cursor-pointer" data-i18n="agent.modal.cancel">Annuler</button>
-        <button type="submit" class="px-6 py-2.5 bg-destructive text-destructive-foreground rounded-xl text-sm tracking-widest hover:bg-destructive/90 transition-colors cursor-pointer" data-i18n="agent.modal.delete">Supprimer</button>
+    <!-- Subscribers list modal -->
+    <dialog id="dlg-subs" class="immopro-dialog">
+      <div class="immopro-dialog-form">
+        <h2 class="serif text-2xl tracking-tight mb-4">Liste des abonnés</h2>
+        <ul id="dlg-subs-list" class="text-sm space-y-1 max-h-[50vh] overflow-y-auto pr-2"></ul>
+        <div class="flex justify-end mt-6 pt-5 border-t border-border">
+          <button type="button" data-close class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer">Fermer</button>
+        </div>
       </div>
-    </form>
-  </dialog>
-
-  <!-- Analytics subscribers list modal -->
-  <dialog id="dlg-subs" class="immopro-dialog">
-    <div class="immopro-dialog-form">
-      <h2 class="serif text-2xl tracking-tight mb-4" data-i18n="agent.subs_list_title">Liste des abonnés :</h2>
-      <ul id="dlg-subs-list" class="text-sm space-y-1 max-h-[50vh] overflow-y-auto pr-2"></ul>
-      <div class="flex justify-end mt-6 pt-5 border-t border-border">
-        <button type="button" data-close class="px-6 py-2.5 bg-foreground text-background rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer" data-i18n="agent.modal.cancel">Fermer</button>
-      </div>
-    </div>
-  </dialog>
+    </dialog>
+  )}
 
   <style>
-    /* Dialog base styles. Native <dialog> with backdrop. */
-    .immopro-dialog {
-      border: 1px solid var(--border);
-      background: var(--background);
-      color: var(--foreground);
-      padding: 0;
-      border-radius: 1.25rem;
-      max-width: 640px;
-      width: calc(100% - 2rem);
-      box-shadow: 0 32px 64px -12px rgb(0 0 0 / 0.18);
-    }
+    .immopro-dialog { border: 1px solid var(--border); background: var(--background); color: var(--foreground); padding: 0; border-radius: 1.25rem; max-width: 640px; width: calc(100% - 2rem); box-shadow: 0 32px 64px -12px rgb(0 0 0 / 0.28); }
     .immopro-dialog-narrow { max-width: 480px; }
-    .immopro-dialog::backdrop {
-      background: rgb(0 0 0 / 0.55);
-      backdrop-filter: blur(2px);
-    }
-    .immopro-dialog-form {
-      padding: 2rem;
-    }
-    .immopro-dialog[open] {
-      animation: dialog-pop 280ms cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    @keyframes dialog-pop {
-      from { opacity: 0; transform: scale(0.96) translateY(8px); }
-      to   { opacity: 1; transform: scale(1) translateY(0);     }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .immopro-dialog[open] { animation: none; }
-    }
+    .immopro-dialog::backdrop { background: rgb(0 0 0 / 0.6); backdrop-filter: blur(3px); }
+    .immopro-dialog-form { padding: 2rem; }
+    .immopro-dialog[open] { animation: dialog-pop 280ms cubic-bezier(0.22, 1, 0.36, 1); }
+    @keyframes dialog-pop { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    @media (prefers-reduced-motion: reduce) { .immopro-dialog[open] { animation: none; } }
   </style>
 
   <script>
-    import { getProperties, saveProperties, type Property, type Client } from '../lib/data.ts';
-    import { t } from '../lib/i18n.ts';
+    import { supabase } from '../lib/supabase/client.ts';
 
-    // ============================================================
-    // Constants and helpers
-    // ============================================================
-
-    /**
-     * SHA-256 hash of the agent passphrase. Rotate by computing a new hash:
-     *   [System.BitConverter]::ToString(
-     *     [System.Security.Cryptography.SHA256]::Create().ComputeHash(
-     *       [System.Text.Encoding]::UTF8.GetBytes("YOUR-NEW-PASSPHRASE")
-     *     )
-     *   ).Replace("-","").ToLower()
-     */
-    const AGENT_KEY_HASH = '5aafe643821c1b12ecded094e3bd81721f456ef7b1473c949d2c583c8855d8d5';
-    const SESSION_KEY = 'immopro_agent_sess';
-
-    /** XSS-safe escape for any user-typed string interpolated into innerHTML. */
-    function safe(s: string | number | undefined | null): string {
-      if (s === undefined || s === null) return '';
-      return String(s).replace(/[<>&"']/g, (c) => ({
-        '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;'
-      }[c] || c));
-    }
-
-    async function sha256(input: string): Promise<string> {
-      const data = new TextEncoder().encode(input);
-      const hash = await crypto.subtle.digest('SHA-256', data);
-      return Array.from(new Uint8Array(hash))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-    }
-
-    // ============================================================
-    // State
-    // ============================================================
-
-    interface AgentAppointment {
-      id: string;
-      date: string;
-      propertyId?: string;
-      note: string;
-      createdAt: string;
-    }
-
-    let properties: Property[] = [];
-    let clients: Client[] = [];
-    let appointments: AgentAppointment[] = [];
-
-    // ============================================================
-    // Passphrase gate
-    // ============================================================
-
-    function showGate() {
-      document.getElementById('agent-gate')?.classList.remove('hidden');
-      document.getElementById('agent-app')?.classList.add('hidden');
-    }
-
-    function hideGate() {
-      document.getElementById('agent-gate')?.classList.add('hidden');
-      document.getElementById('agent-app')?.classList.remove('hidden');
-    }
-
-    async function checkGate() {
-      if (sessionStorage.getItem(SESSION_KEY) === '1') {
-        hideGate();
-        bootDashboard();
-      } else {
-        showGate();
-      }
-    }
-
-    function setupGateForm() {
-      const form = document.getElementById('agent-gate-form') as HTMLFormElement | null;
-      const input = document.getElementById('agent-gate-input') as HTMLInputElement | null;
-      const err = document.getElementById('agent-gate-error');
-      if (!form || !input || !err) return;
-
-      form.addEventListener('submit', async (e) => {
+    // ---- Login (present only when signed out) ----
+    const loginForm = document.getElementById('login-form') as HTMLFormElement | null;
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        err.classList.add('hidden');
-        const value = (input.value || '').trim();
-        if (!value) return;
-        const hashed = await sha256(value);
-        if (hashed === AGENT_KEY_HASH) {
-          sessionStorage.setItem(SESSION_KEY, '1');
-          input.value = '';
-          hideGate();
-          bootDashboard();
-        } else {
-          err.classList.remove('hidden');
-          input.value = '';
-          input.focus();
-        }
-      });
-
-      // Trigger via URL hash for muscle-memory access
-      if (location.hash === '#unlock') {
-        input.focus();
-      }
-    }
-
-    function setupLockButton() {
-      const btn = document.getElementById('agent-lock-btn');
-      btn?.addEventListener('click', () => {
-        sessionStorage.removeItem(SESSION_KEY);
-        location.reload();
+        const email = (document.getElementById('login-email') as HTMLInputElement).value.trim();
+        const password = (document.getElementById('login-password') as HTMLInputElement).value;
+        const err = document.getElementById('login-error');
+        err?.classList.add('hidden');
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) { err?.classList.remove('hidden'); return; }
+        window.location.reload();
       });
     }
 
-    // ============================================================
-    // Modal helpers
-    // ============================================================
+    // ---- Dashboard (present only when signed in) ----
+    const appEl = document.getElementById('agent-app');
+    if (appEl) bootDashboard();
 
-    function openDialog(id: string) {
-      const dlg = document.getElementById(id) as HTMLDialogElement | null;
-      if (!dlg) return;
-      if (typeof dlg.showModal === 'function') {
-        dlg.showModal();
-      } else {
-        dlg.setAttribute('open', '');
-      }
+    function safe(s: any): string {
+      if (s === undefined || s === null) return '';
+      return String(s).replace(/[<>&"']/g, (c) => (({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' } as any)[c] || c));
     }
+    const fmtPrice = (n: number) => new Intl.NumberFormat('fr-FR').format(n || 0) + ' FCFA';
 
-    function closeDialog(id: string) {
-      const dlg = document.getElementById(id) as HTMLDialogElement | null;
-      if (!dlg) return;
-      if (typeof dlg.close === 'function') {
-        dlg.close();
-      } else {
-        dlg.removeAttribute('open');
-      }
+    let properties: any[] = [];
+    let clients: any[] = [];
+    let appointments: any[] = [];
+
+    function openDialog(id: string) { const d = document.getElementById(id) as HTMLDialogElement | null; if (d) (d.showModal ? d.showModal() : d.setAttribute('open', '')); }
+    function closeDialog(id: string) { const d = document.getElementById(id) as HTMLDialogElement | null; if (d) (d.close ? d.close() : d.removeAttribute('open')); }
+    function wireCloseButtons() {
+      document.querySelectorAll('dialog [data-close]').forEach((btn) => btn.addEventListener('click', (e) => { e.preventDefault(); (btn as HTMLElement).closest('dialog') && ((btn as HTMLElement).closest('dialog') as HTMLDialogElement).close(); }));
     }
-
-    function wireDialogCloseButtons() {
-      document.querySelectorAll('dialog [data-close]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          const dlg = (btn as HTMLElement).closest('dialog');
-          if (dlg && typeof (dlg as HTMLDialogElement).close === 'function') {
-            (dlg as HTMLDialogElement).close();
-          }
-        });
-      });
-    }
-
-    /** Open the confirm dialog. Resolves true if user confirms, false otherwise. */
-    function confirmModal(messageKey: string): Promise<boolean> {
+    function confirmModal(message: string): Promise<boolean> {
       return new Promise((resolve) => {
         const dlg = document.getElementById('dlg-confirm') as HTMLDialogElement | null;
         const form = document.getElementById('form-confirm') as HTMLFormElement | null;
         const msg = document.getElementById('dlg-confirm-message');
-        if (!dlg || !form || !msg) {
-          resolve(false);
-          return;
-        }
-        msg.textContent = t(messageKey as Parameters<typeof t>[0]);
-
-        const onSubmit = (e: SubmitEvent) => {
-          e.preventDefault();
-          form.removeEventListener('submit', onSubmit as EventListener);
-          dlg.removeEventListener('close', onCancel);
-          dlg.close();
-          resolve(true);
-        };
-        const onCancel = () => {
-          form.removeEventListener('submit', onSubmit as EventListener);
-          dlg.removeEventListener('close', onCancel);
-          resolve(false);
-        };
-        form.addEventListener('submit', onSubmit as EventListener);
-        dlg.addEventListener('close', onCancel);
+        if (!dlg || !form || !msg) { resolve(false); return; }
+        msg.textContent = message;
+        const onSubmit = (e: Event) => { e.preventDefault(); cleanup(); dlg.close(); resolve(true); };
+        const onClose = () => { cleanup(); resolve(false); };
+        const cleanup = () => { form.removeEventListener('submit', onSubmit); dlg.removeEventListener('close', onClose); };
+        form.addEventListener('submit', onSubmit);
+        dlg.addEventListener('close', onClose);
         openDialog('dlg-confirm');
       });
     }
 
-    // ============================================================
-    // Properties CRUD
-    // ============================================================
-
+    // ---------- Properties ----------
+    async function loadProperties() {
+      const { data, error } = await supabase.from('properties').select('*').order('created_at', { ascending: false });
+      if (error) console.error('loadProperties', error.message);
+      properties = data || [];
+    }
     function renderProperties() {
       const tbody = document.getElementById('properties-tbody');
       if (!tbody) return;
-      tbody.innerHTML = properties.map((p: Property) => `
+      tbody.innerHTML = properties.map((p) => `
         <tr class="border-b hover:bg-card/30 transition-colors">
           <td class="py-4 font-medium">${safe(p.title)}</td>
           <td>${safe(p.city)}</td>
-          <td>${new Intl.NumberFormat('fr-FR').format(p.price)} FCFA</td>
+          <td>${fmtPrice(p.price)}</td>
           <td class="text-right py-4 space-x-2">
-            <button data-edit-prop="${safe(p.id)}" class="text-xs px-3 py-1 border border-border rounded-xl cursor-pointer hover:border-foreground transition-colors">${t('agent.edit')}</button>
-            <button data-delete-prop="${safe(p.id)}" class="text-xs px-3 py-1 text-destructive cursor-pointer hover:underline">${t('agent.suppr')}</button>
+            <button data-edit-prop="${safe(p.id)}" class="text-xs px-3 py-1 border border-border rounded-xl cursor-pointer hover:border-foreground transition-colors">Modifier</button>
+            <button data-del-prop="${safe(p.id)}" class="text-xs px-3 py-1 text-destructive cursor-pointer hover:underline">Suppr</button>
           </td>
-        </tr>
-      `).join('');
-
-      tbody.querySelectorAll('[data-edit-prop]').forEach(btn => {
-        const id = btn.getAttribute('data-edit-prop');
-        btn.addEventListener('click', () => { if (id) editProperty(id); });
-      });
-      tbody.querySelectorAll('[data-delete-prop]').forEach(btn => {
-        const id = btn.getAttribute('data-delete-prop');
-        btn.addEventListener('click', () => { if (id) deleteProperty(id); });
-      });
+        </tr>`).join('');
+      tbody.querySelectorAll('[data-edit-prop]').forEach((b) => b.addEventListener('click', () => editProperty(b.getAttribute('data-edit-prop')!)));
+      tbody.querySelectorAll('[data-del-prop]').forEach((b) => b.addEventListener('click', () => deleteProperty(b.getAttribute('data-del-prop')!)));
     }
-
-    function setPropertyFormFields(p: Partial<Property> | null) {
-      (document.getElementById('form-property-id') as HTMLInputElement).value = p?.id || '';
-      (document.getElementById('form-property-title') as HTMLInputElement).value = p?.title || '';
-      (document.getElementById('form-property-titleEn') as HTMLInputElement).value = p?.titleEn || '';
-      (document.getElementById('form-property-city') as HTMLInputElement).value = p?.city || 'Douala';
+    function fillPropForm(p: any | null) {
+      const g = (id: string) => document.getElementById(id) as HTMLInputElement;
+      g('form-property-id').value = p?.id || '';
+      g('form-property-title').value = p?.title || '';
+      g('form-property-titleEn').value = p?.title_en || '';
+      g('form-property-city').value = p?.city || 'Douala';
       (document.getElementById('form-property-type') as HTMLSelectElement).value = p?.type || 'VILLA';
-      (document.getElementById('form-property-price') as HTMLInputElement).value = String(p?.price || '');
-      (document.getElementById('form-property-surface') as HTMLInputElement).value = String(p?.surface || '');
-      (document.getElementById('form-property-rooms') as HTMLInputElement).value = p?.rooms != null ? String(p.rooms) : '';
-      (document.getElementById('form-property-bathrooms') as HTMLInputElement).value = p?.bathrooms != null ? String(p.bathrooms) : '';
-      (document.getElementById('form-property-image') as HTMLInputElement).value = p?.image || '';
+      g('form-property-price').value = p?.price != null ? String(p.price) : '';
+      g('form-property-surface').value = p?.surface != null ? String(p.surface) : '';
+      g('form-property-rooms').value = p?.rooms != null ? String(p.rooms) : '';
+      g('form-property-bathrooms').value = p?.bathrooms != null ? String(p.bathrooms) : '';
+      (document.getElementById('form-property-description') as HTMLTextAreaElement).value = p?.description || '';
+      g('form-property-image').value = p?.cover_image || '';
     }
-
-    function readPropertyFormFields(): Partial<Property> {
+    function openNewProperty() { (document.getElementById('dlg-property-title') as HTMLElement).textContent = 'Nouveau bien'; fillPropForm(null); openDialog('dlg-property'); }
+    function editProperty(id: string) { const p = properties.find((x) => x.id === id); if (!p) return; (document.getElementById('dlg-property-title') as HTMLElement).textContent = 'Modifier le bien'; fillPropForm(p); openDialog('dlg-property'); }
+    function readPropForm() {
+      const g = (id: string) => (document.getElementById(id) as HTMLInputElement).value;
+      const num = (v: string) => (v === '' ? null : Number(v));
+      const DEFAULT_IMG = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80';
+      const title = g('form-property-title').trim();
       return {
-        id: (document.getElementById('form-property-id') as HTMLInputElement).value || undefined,
-        title: (document.getElementById('form-property-title') as HTMLInputElement).value.trim(),
-        titleEn: (document.getElementById('form-property-titleEn') as HTMLInputElement).value.trim() || (document.getElementById('form-property-title') as HTMLInputElement).value.trim(),
-        city: (document.getElementById('form-property-city') as HTMLInputElement).value.trim(),
-        type: (document.getElementById('form-property-type') as HTMLSelectElement).value as Property['type'],
-        price: Number((document.getElementById('form-property-price') as HTMLInputElement).value) || 0,
-        surface: Number((document.getElementById('form-property-surface') as HTMLInputElement).value) || 0,
-        rooms: Number((document.getElementById('form-property-rooms') as HTMLInputElement).value) || undefined,
-        bathrooms: Number((document.getElementById('form-property-bathrooms') as HTMLInputElement).value) || undefined,
-        image: (document.getElementById('form-property-image') as HTMLInputElement).value.trim() || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+        id: g('form-property-id') || null,
+        title,
+        title_en: g('form-property-titleEn').trim() || title,
+        city: g('form-property-city').trim() || 'Douala',
+        type: (document.getElementById('form-property-type') as HTMLSelectElement).value,
+        price: Number(g('form-property-price')) || 0,
+        surface: Number(g('form-property-surface')) || 0,
+        rooms: num(g('form-property-rooms')),
+        bathrooms: num(g('form-property-bathrooms')),
+        description: (document.getElementById('form-property-description') as HTMLTextAreaElement).value.trim() || null,
+        cover_image: g('form-property-image').trim() || DEFAULT_IMG
       };
     }
-
-    function openNewProperty() {
-      const title = document.getElementById('dlg-property-title');
-      if (title) title.textContent = t('agent.modal.new_property_title');
-      setPropertyFormFields(null);
-      openDialog('dlg-property');
-    }
-
-    function editProperty(id: string) {
-      const p = properties.find((x: Property) => x.id === id);
-      if (!p) return;
-      const title = document.getElementById('dlg-property-title');
-      if (title) title.textContent = t('agent.modal.edit_property_title');
-      setPropertyFormFields(p);
-      openDialog('dlg-property');
-    }
-
     function setupPropertyForm() {
       const form = document.getElementById('form-property') as HTMLFormElement | null;
       if (!form) return;
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const data = readPropertyFormFields();
-        if (!data.title || !data.city || !data.price || !data.surface) return;
-
-        if (data.id) {
-          // Edit existing
-          const idx = properties.findIndex((p: Property) => p.id === data.id);
-          if (idx >= 0) {
-            properties[idx] = { ...properties[idx], ...data } as Property;
-          }
+        const d = readPropForm();
+        if (!d.title || !d.city || !d.price || !d.surface) return;
+        let error;
+        if (d.id) {
+          const { id, ...upd } = d;
+          ({ error } = await supabase.from('properties').update(upd).eq('id', id));
         } else {
-          // New
-          const newP: Property = {
-            id: 'p' + Date.now(),
-            title: data.title || 'Sans titre',
-            titleEn: data.titleEn || data.title || 'Untitled',
-            city: data.city || 'Douala',
-            price: data.price || 0,
-            surface: data.surface || 0,
-            type: data.type || 'VILLA',
-            image: data.image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-            images: [data.image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80'],
-            description: t('agent.new_property_added'),
-            descriptionEn: t('agent.new_property_added'),
-            rooms: data.rooms,
-            bathrooms: data.bathrooms,
-            features: [],
-            featuresEn: [],
-          };
-          properties.unshift(newP);
+          const { id, ...ins } = d;
+          const payload = { ...ins, slug: 'p' + Date.now(), status: 'available', published: true, features: [], features_en: [] };
+          ({ error } = await supabase.from('properties').insert(payload));
         }
-
-        saveProperties(properties);
-        renderProperties();
+        if (error) { alert('Erreur : ' + error.message); return; }
         closeDialog('dlg-property');
+        await loadProperties(); renderProperties(); renderKpis();
       });
     }
-
     async function deleteProperty(id: string) {
-      const ok = await confirmModal('agent.modal.confirm_delete_property');
-      if (!ok) return;
-      properties = properties.filter((x: Property) => x.id !== id);
-      saveProperties(properties);
-      renderProperties();
+      if (!(await confirmModal('Supprimer définitivement ce bien ?'))) return;
+      const { error } = await supabase.from('properties').delete().eq('id', id);
+      if (error) { alert('Erreur : ' + error.message); return; }
+      await loadProperties(); renderProperties(); renderKpis();
     }
 
-    // ============================================================
-    // Clients CRUD
-    // ============================================================
-
+    // ---------- Clients ----------
+    async function loadClients() {
+      const { data, error } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
+      if (error) console.error('loadClients', error.message);
+      clients = data || [];
+    }
     function renderClients() {
       const el = document.getElementById('clients-list');
       if (!el) return;
-      if (clients.length === 0) {
-        el.innerHTML = `<p class="text-foreground/50 text-sm">${t('agent.no_clients')}</p>`;
-        return;
-      }
-      el.innerHTML = clients.map((c: Client) => `
+      if (!clients.length) { el.innerHTML = `<p class="text-foreground/50 text-sm">Aucun client répertorié.</p>`; return; }
+      el.innerHTML = clients.map((c) => `
         <div class="border border-border bg-card/30 p-5 rounded-2xl flex justify-between items-center">
-          <div>
-            <div class="font-medium text-base">${safe(c.name)}</div>
-            <div class="text-xs text-foreground/60 mt-1">${safe(c.email)}${c.phone ? ' · ' + safe(c.phone) : ''}</div>
-          </div>
-          <button data-delete-client="${safe(c.id)}" class="text-xs px-3 py-1.5 border border-destructive/20 text-destructive hover:bg-destructive/10 rounded-xl cursor-pointer transition-colors">${t('agent.suppr')}</button>
-        </div>
-      `).join('');
-
-      el.querySelectorAll('[data-delete-client]').forEach(btn => {
-        const id = btn.getAttribute('data-delete-client');
-        btn.addEventListener('click', () => { if (id) deleteClient(id); });
-      });
+          <div><div class="font-medium text-base">${safe(c.name)}</div>
+            <div class="text-xs text-foreground/60 mt-1">${safe(c.email)}${c.phone ? ' · ' + safe(c.phone) : ''}</div></div>
+          <button data-del-client="${safe(c.id)}" class="text-xs px-3 py-1.5 border border-destructive/20 text-destructive hover:bg-destructive/10 rounded-xl cursor-pointer transition-colors">Suppr</button>
+        </div>`).join('');
+      el.querySelectorAll('[data-del-client]').forEach((b) => b.addEventListener('click', () => deleteClient(b.getAttribute('data-del-client')!)));
     }
-
     function openNewClient() {
       (document.getElementById('form-client-name') as HTMLInputElement).value = '';
       (document.getElementById('form-client-email') as HTMLInputElement).value = '';
       (document.getElementById('form-client-phone') as HTMLInputElement).value = '';
+      (document.getElementById('form-client-notes') as HTMLTextAreaElement).value = '';
       (document.getElementById('form-client-source') as HTMLSelectElement).value = 'referral';
       openDialog('dlg-client');
     }
-
     function setupClientForm() {
       const form = document.getElementById('form-client') as HTMLFormElement | null;
       if (!form) return;
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = (document.getElementById('form-client-name') as HTMLInputElement).value.trim();
-        const email = (document.getElementById('form-client-email') as HTMLInputElement).value.trim();
-        const phone = (document.getElementById('form-client-phone') as HTMLInputElement).value.trim();
-        const source = (document.getElementById('form-client-source') as HTMLSelectElement).value;
-        if (!name || !email) return;
-
-        clients.unshift({
-          id: 'c' + Date.now(),
+        if (!name) return;
+        const payload = {
           name,
-          email,
-          phone,
-          source,
-          createdAt: new Date().toISOString(),
-        });
-        localStorage.setItem('immopro_clients', JSON.stringify(clients));
-        renderClients();
+          email: (document.getElementById('form-client-email') as HTMLInputElement).value.trim() || null,
+          phone: (document.getElementById('form-client-phone') as HTMLInputElement).value.trim() || null,
+          source: (document.getElementById('form-client-source') as HTMLSelectElement).value,
+          notes: (document.getElementById('form-client-notes') as HTMLTextAreaElement).value.trim() || null
+        };
+        const { error } = await supabase.from('clients').insert(payload);
+        if (error) { alert('Erreur : ' + error.message); return; }
         closeDialog('dlg-client');
+        await loadClients(); renderClients();
       });
     }
-
     async function deleteClient(id: string) {
-      const ok = await confirmModal('agent.modal.confirm_delete_client');
-      if (!ok) return;
-      clients = clients.filter((c: Client) => c.id !== id);
-      localStorage.setItem('immopro_clients', JSON.stringify(clients));
-      renderClients();
+      if (!(await confirmModal('Supprimer définitivement ce client ?'))) return;
+      const { error } = await supabase.from('clients').delete().eq('id', id);
+      if (error) { alert('Erreur : ' + error.message); return; }
+      await loadClients(); renderClients();
     }
 
-    // ============================================================
-    // Appointments CRUD
-    // ============================================================
-
+    // ---------- Appointments ----------
+    async function loadAppointments() {
+      const { data, error } = await supabase.from('appointments').select('*').order('scheduled_at', { ascending: true });
+      if (error) console.error('loadAppointments', error.message);
+      appointments = data || [];
+    }
     function renderAppointments() {
       const el = document.getElementById('appointments-list');
       if (!el) return;
-      if (appointments.length === 0) {
-        el.innerHTML = `<p class="text-foreground/50 text-sm">${t('agent.no_appointments')}</p>`;
-        return;
-      }
-      el.innerHTML = appointments.map((a: AgentAppointment) => {
-        const linked = a.propertyId ? properties.find((p: Property) => p.id === a.propertyId) : null;
-        const linkedTitle = linked ? linked.title : '';
+      if (!appointments.length) { el.innerHTML = `<p class="text-foreground/50 text-sm">Aucun rendez-vous planifié.</p>`; return; }
+      el.innerHTML = appointments.map((a) => {
+        const linked = a.property_id ? properties.find((p) => p.id === a.property_id) : null;
+        const date = new Date(a.scheduled_at).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric' });
         return `
           <div class="border border-border bg-card/30 p-5 rounded-2xl flex justify-between items-start gap-4">
             <div class="flex-1 min-w-0">
-              <div class="font-medium text-base">📅 ${safe(a.date)}</div>
-              ${linkedTitle ? `<div class="text-xs text-[#0F766E] mt-1">${safe(linkedTitle)}</div>` : ''}
-              <div class="text-xs text-foreground/60 mt-1">${safe(a.note)}</div>
+              <div class="font-medium text-base">${safe(date)}</div>
+              ${linked ? `<div class="text-xs text-[#0F766E] mt-1">${safe(linked.title)}</div>` : ''}
+              <div class="text-xs text-foreground/60 mt-1">${safe(a.notes)}</div>
             </div>
-            <button data-delete-appt="${safe(a.id)}" class="text-xs px-3 py-1.5 border border-destructive/20 text-destructive hover:bg-destructive/10 rounded-xl cursor-pointer transition-colors whitespace-nowrap">${t('agent.suppr')}</button>
-          </div>
-        `;
+            <button data-del-appt="${safe(a.id)}" class="text-xs px-3 py-1.5 border border-destructive/20 text-destructive hover:bg-destructive/10 rounded-xl cursor-pointer transition-colors whitespace-nowrap">Suppr</button>
+          </div>`;
       }).join('');
-
-      el.querySelectorAll('[data-delete-appt]').forEach(btn => {
-        const id = btn.getAttribute('data-delete-appt');
-        btn.addEventListener('click', () => { if (id) deleteAppointment(id); });
-      });
+      el.querySelectorAll('[data-del-appt]').forEach((b) => b.addEventListener('click', () => deleteAppointment(b.getAttribute('data-del-appt')!)));
     }
-
     function openNewAppointment() {
-      // Populate property dropdown
-      const propSel = document.getElementById('form-appointment-property') as HTMLSelectElement | null;
-      if (propSel) {
-        propSel.innerHTML = '<option value="">—</option>' + properties.map((p: Property) =>
-          `<option value="${safe(p.id)}">${safe(p.title)}</option>`
-        ).join('');
-      }
-
-      const today = new Date().toISOString().slice(0, 10);
-      (document.getElementById('form-appointment-date') as HTMLInputElement).value = today;
+      const sel = document.getElementById('form-appointment-property') as HTMLSelectElement | null;
+      if (sel) sel.innerHTML = '<option value="">—</option>' + properties.map((p) => `<option value="${safe(p.id)}">${safe(p.title)}</option>`).join('');
+      (document.getElementById('form-appointment-date') as HTMLInputElement).value = new Date().toISOString().slice(0, 10);
       (document.getElementById('form-appointment-notes') as HTMLTextAreaElement).value = '';
       openDialog('dlg-appointment');
     }
-
     function setupAppointmentForm() {
       const form = document.getElementById('form-appointment') as HTMLFormElement | null;
       if (!form) return;
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const date = (document.getElementById('form-appointment-date') as HTMLInputElement).value;
-        const propertyId = (document.getElementById('form-appointment-property') as HTMLSelectElement).value || undefined;
-        const note = (document.getElementById('form-appointment-notes') as HTMLTextAreaElement).value.trim() || t('agent.visit_note');
         if (!date) return;
-
-        appointments.unshift({
-          id: 'a' + Date.now(),
-          date,
-          propertyId,
-          note,
-          createdAt: new Date().toISOString(),
-        });
-        localStorage.setItem('immopro_appointments', JSON.stringify(appointments));
-        renderAppointments();
+        const payload = {
+          scheduled_at: new Date(date + 'T09:00:00').toISOString(),
+          property_id: (document.getElementById('form-appointment-property') as HTMLSelectElement).value || null,
+          notes: (document.getElementById('form-appointment-notes') as HTMLTextAreaElement).value.trim() || 'Visite guidée',
+          status: 'pending'
+        };
+        const { error } = await supabase.from('appointments').insert(payload);
+        if (error) { alert('Erreur : ' + error.message); return; }
         closeDialog('dlg-appointment');
+        await loadAppointments(); renderAppointments();
       });
     }
-
     async function deleteAppointment(id: string) {
-      const ok = await confirmModal('agent.modal.confirm_delete_appointment');
-      if (!ok) return;
-      appointments = appointments.filter((a: AgentAppointment) => a.id !== id);
-      localStorage.setItem('immopro_appointments', JSON.stringify(appointments));
-      renderAppointments();
+      if (!(await confirmModal('Supprimer définitivement ce rendez-vous ?'))) return;
+      const { error } = await supabase.from('appointments').delete().eq('id', id);
+      if (error) { alert('Erreur : ' + error.message); return; }
+      await loadAppointments(); renderAppointments();
     }
 
-    // ============================================================
-    // Videos preview
-    // ============================================================
-
-    function generate3DTour() {
-      const preview = document.getElementById('remotion-preview');
-      if (!preview) return;
-      preview.textContent = t('agent.videos_frame_msg');
-      setTimeout(() => {
-        if (preview) preview.textContent = t('agent.videos_done_msg');
-      }, 1200);
+    // ---------- Analytics + KPIs ----------
+    async function renderKpis() {
+      const { count: propCount } = await supabase.from('properties').select('*', { count: 'exact', head: true });
+      const { count: leadCount } = await supabase.from('leads').select('*', { count: 'exact', head: true });
+      const { count: subCount } = await supabase.from('subscribers').select('*', { count: 'exact', head: true });
+      const set = (id: string, v: number | null) => { const el = document.getElementById(id); if (el) el.textContent = String(v ?? 0); };
+      set('kpi-properties', propCount); set('kpi-leads', leadCount); set('kpi-subs', subCount);
     }
-
-    // ============================================================
-    // Analytics
-    // ============================================================
-
-    function renderAnalytics() {
+    async function renderAnalytics() {
       const el = document.getElementById('analytics-content');
       if (!el) return;
-      const visitors = JSON.parse(localStorage.getItem('immopro_visitor_history') || '{}');
-      const subs: string[] = JSON.parse(localStorage.getItem('immopro_subscribers') || '[]');
+      const { count: subCount } = await supabase.from('subscribers').select('*', { count: 'exact', head: true });
+      const { count: leadCount } = await supabase.from('leads').select('*', { count: 'exact', head: true });
       el.innerHTML = `
         <div class="space-y-2">
-          <div class="flex justify-between border-b pb-2">
-            <span class="text-foreground/60">${t('agent.analytics_visits')}</span>
-            <span class="font-medium">${Object.keys(visitors).length} ${t('agent.analytics_visits_unit')}</span>
-          </div>
-          <div class="flex justify-between border-b pb-2">
-            <span class="text-foreground/60">${t('agent.analytics_subs')}</span>
-            <span class="font-medium">${subs.length} ${t('agent.analytics_subs_unit')}</span>
-          </div>
-          <div class="pt-2">
-            <button id="btn-export-subs" class="text-xs border border-border px-4 py-2 rounded-xl cursor-pointer hover:border-foreground transition-colors">${t('agent.export_subs')}</button>
-          </div>
-        </div>
-      `;
-      document.getElementById('btn-export-subs')?.addEventListener('click', viewSubscribers);
+          <div class="flex justify-between border-b pb-2"><span class="text-foreground/60">Prospects (leads) :</span><span class="font-medium">${leadCount ?? 0}</span></div>
+          <div class="flex justify-between border-b pb-2"><span class="text-foreground/60">Abonnés exclusivités :</span><span class="font-medium">${subCount ?? 0} emails</span></div>
+          <div class="pt-2"><button id="btn-view-subs" class="text-xs border border-border px-4 py-2 rounded-xl cursor-pointer hover:border-foreground transition-colors">Voir la liste d'abonnés</button></div>
+        </div>`;
+      document.getElementById('btn-view-subs')?.addEventListener('click', viewSubscribers);
     }
-
-    function viewSubscribers() {
-      const subs: string[] = JSON.parse(localStorage.getItem('immopro_subscribers') || '[]');
+    async function viewSubscribers() {
+      const { data } = await supabase.from('subscribers').select('email').order('created_at', { ascending: false });
       const list = document.getElementById('dlg-subs-list');
       if (!list) return;
-      if (subs.length === 0) {
-        list.innerHTML = `<li class="text-foreground/55">${t('agent.no_subs')}</li>`;
-      } else {
-        list.innerHTML = subs.map(e => `<li class="border-b border-border py-1.5">${safe(e)}</li>`).join('');
-      }
+      list.innerHTML = (data && data.length) ? data.map((s) => `<li class="border-b border-border py-1.5">${safe(s.email)}</li>`).join('') : `<li class="text-foreground/55">Aucun abonné pour le moment.</li>`;
       openDialog('dlg-subs');
     }
 
-    // ============================================================
-    // Tabs
-    // ============================================================
-
+    // ---------- Tabs ----------
     function setupTabs() {
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('border-b-2', 'border-foreground', 'font-medium'));
-          btn.classList.add('border-b-2', 'border-foreground', 'font-medium');
-          document.querySelectorAll('[data-panel]').forEach(p => p.classList.add('hidden'));
-
-          const panel = document.querySelector(`[data-panel="${(btn as HTMLElement).dataset.tab}"]`);
-          if (panel) panel.classList.remove('hidden');
-
-          const tab = (btn as HTMLElement).dataset.tab;
-          if (tab === 'clients') renderClients();
-          if (tab === 'appointments') renderAppointments();
-          if (tab === 'analytics') renderAnalytics();
-        });
-      });
+      document.querySelectorAll('.tab-btn').forEach((btn) => btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('border-b-2', 'border-foreground', 'font-medium'));
+        btn.classList.add('border-b-2', 'border-foreground', 'font-medium');
+        document.querySelectorAll('[data-panel]').forEach((p) => p.classList.add('hidden'));
+        const tab = (btn as HTMLElement).dataset.tab!;
+        document.querySelector(`[data-panel="${tab}"]`)?.classList.remove('hidden');
+        if (tab === 'clients') renderClients();
+        if (tab === 'appointments') renderAppointments();
+        if (tab === 'analytics') renderAnalytics();
+      }));
     }
 
-    // ============================================================
-    // Boot
-    // ============================================================
-
-    function bootDashboard() {
-      // Load data
-      properties = getProperties();
-      clients = JSON.parse(localStorage.getItem('immopro_clients') || '[]');
-      appointments = JSON.parse(localStorage.getItem('immopro_appointments') || '[]');
-
-      // Seed demo data on first ever boot
-      if (clients.length === 0) {
-        clients = [{
-          id: 'c1',
-          name: t('agent.demo_client'),
-          email: 'demo@immopro.cm',
-          phone: '',
-          source: 'referral',
-          createdAt: new Date().toISOString(),
-        }];
-        localStorage.setItem('immopro_clients', JSON.stringify(clients));
-      }
-      if (appointments.length === 0) {
-        appointments = [{
-          id: 'a1',
-          date: '2026-06-15',
-          note: t('agent.demo_appointment_note'),
-          createdAt: new Date().toISOString(),
-        }];
-        localStorage.setItem('immopro_appointments', JSON.stringify(appointments));
-      }
-
-      // Wire UI
+    async function bootDashboard() {
       setupTabs();
-      setupPropertyForm();
-      setupClientForm();
-      setupAppointmentForm();
-      wireDialogCloseButtons();
-      setupLockButton();
-
+      setupPropertyForm(); setupClientForm(); setupAppointmentForm(); wireCloseButtons();
       document.getElementById('btn-new-property')?.addEventListener('click', openNewProperty);
       document.getElementById('btn-new-client')?.addEventListener('click', openNewClient);
       document.getElementById('btn-new-appointment')?.addEventListener('click', openNewAppointment);
-      document.getElementById('btn-generate-tour')?.addEventListener('click', generate3DTour);
+      document.getElementById('agent-lock-btn')?.addEventListener('click', async () => { await supabase.auth.signOut(); window.location.reload(); });
 
-      // Initial renders
-      renderProperties();
-      renderClients();
-      renderAppointments();
-      renderAnalytics();
+      await Promise.all([loadProperties(), loadClients(), loadAppointments()]);
+      renderProperties(); renderKpis();
     }
-
-    document.addEventListener('immopro:locale-changed', () => {
-      if (sessionStorage.getItem(SESSION_KEY) === '1') bootDashboard();
-    });
-
-    document.addEventListener('astro:page-load', () => {
-      setupGateForm();
-      checkGate();
-    });
-
-    setupGateForm();
-    checkGate();
   </script>
 </MainLayout>
