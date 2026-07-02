@@ -1,0 +1,14 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+---
+
+<MainLayout title="Page introuvable • ImmoPro">
+  <div class="min-h-[60vh] flex items-center justify-center">
+    <div class="text-center reveal">
+      <div class="text-[11px] uppercase tracking-[3px] text-foreground/50 mb-3">404</div>
+      <h1 class="serif text-6xl tracking-tight mb-4" data-i18n="404.title">Page non trouvée</h1>
+      <p class="text-foreground/60 text-sm mb-8" data-i18n="404.subtitle">La page demandée n'existe pas.</p>
+      <a href="/" class="inline-block text-sm border-b border-foreground pb-1 ink-link" data-i18n="404.back">Retour à l'accueil</a>
+    </div>
+  </div>
+</MainLayout>

@@ -1,0 +1,138 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+---
+
+<MainLayout title="À propos • ImmoPro" description="ImmoPro — Une maison éditoriale dédiée à l'immobilier d'exception au Cameroun. Discrétion, rigueur et accompagnement sur la durée.">
+  <!-- Hero -->
+  <section class="border-b border-border">
+    <div class="mx-auto max-w-5xl px-5 py-20 md:py-28">
+      <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 reveal" data-i18n="about.subtitle">Immobilier d'exception au Cameroun</div>
+      <h1 data-kinetic="letters" data-i18n="about.title" class="serif mt-4 text-5xl md:text-7xl tracking-[-2.4px] leading-[0.95] reveal">
+        Une maison. Pas une agence.
+      </h1>
+      <div class="mt-10 grid md:grid-cols-2 gap-10 max-w-4xl">
+        <p data-i18n="about.intro_p1" class="text-lg text-foreground/75 leading-relaxed reveal elevate" style="--i:1">
+          ImmoPro n'est pas une agence immobilière comme les autres. C'est une maison éditoriale dédiée à la sélection, à la curation et à l'accompagnement des transactions immobilières les plus exigeantes au Cameroun.
+        </p>
+        <p data-i18n="about.intro_p2" class="text-lg text-foreground/75 leading-relaxed reveal elevate" style="--i:2">
+          Fondée par des passionnés du patrimoine architectural camerounais, ImmoPro travaille avec un cercle restreint de propriétaires et d'acquéreurs qui partagent une même exigence : la rigueur, la discrétion et le temps long.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Values -->
+  <section class="border-b border-border py-20 bg-card/40">
+    <div class="mx-auto max-w-6xl px-5">
+      <div class="mb-12 reveal">
+        <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2" data-i18n="about.values.tag">Éthique</div>
+        <h2 data-kinetic="letters" data-i18n="about.values.title" class="serif text-4xl md:text-5xl tracking-tight">
+          Nos valeurs cardinales
+        </h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="p-8 border border-border rounded-2xl bg-background reveal elevate" style="--i:1">
+          <div class="w-10 h-10 rounded-full bg-[#0F766E]/10 flex items-center justify-center mb-6 text-[#0F766E]">✦</div>
+          <h3 class="font-medium text-xl mb-3" data-i18n="about.values.discretion.title">Discrétion</h3>
+          <p class="text-foreground/70 text-sm leading-relaxed" data-i18n="about.values.discretion.desc">Chaque mandat est traité avec une confidentialité absolue. Aucune diffusion publique sans validation explicite du vendeur.</p>
+        </div>
+        <div class="p-8 border border-border rounded-2xl bg-background reveal elevate" style="--i:2">
+          <div class="w-10 h-10 rounded-full bg-[#0F766E]/10 flex items-center justify-center mb-6 text-[#0F766E]">✧</div>
+          <h3 class="font-medium text-xl mb-3" data-i18n="about.values.expertise.title">Expertise locale</h3>
+          <p class="text-foreground/70 text-sm leading-relaxed" data-i18n="about.values.expertise.desc">12 ans d'immersion dans les marchés de Douala, Yaoundé et Kribi. Nous connaissons chaque quartier, chaque notaire, chaque promoteur.</p>
+        </div>
+        <div class="p-8 border border-border rounded-2xl bg-background reveal elevate" style="--i:3">
+          <div class="w-10 h-10 rounded-full bg-[#0F766E]/10 flex items-center justify-center mb-6 text-[#0F766E]">✺</div>
+          <h3 class="font-medium text-xl mb-3" data-i18n="about.values.rigor.title">Rigueur documentaire</h3>
+          <p class="text-foreground/70 text-sm leading-relaxed" data-i18n="about.values.rigor.desc">Titre foncier vérifié, plans cadastraux audités, conformité fiscale contrôlée. Aucun bien ne quitte notre table sans vérification complète.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Market / Territories -->
+  <section class="border-b border-border py-20">
+    <div class="mx-auto max-w-6xl px-5">
+      <div class="grid md:grid-cols-12 gap-10">
+        <div class="md:col-span-5 reveal">
+          <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2" data-i18n="about.market.tag">Territoires</div>
+          <h2 data-kinetic="letters" data-i18n="about.market.title" class="serif text-4xl md:text-5xl tracking-tight">
+            Nous opérons là où nous savons
+          </h2>
+          <p class="mt-6 text-foreground/70 leading-relaxed" data-i18n="about.market.p1">
+            Le marché immobilier camerounais est un territoire complexe, marqué par des particularités juridiques, fonctières et culturelles que seuls les acteurs ancrés maîtrisent. Nous avons choisi de nous concentrer sur trois pôles complementaires.
+          </p>
+          <p class="mt-4 text-foreground/70 leading-relaxed" data-i18n="about.market.p2">
+            Cette concentration géographique nous permet d'offrir une expertise approfondie là où la valeur le justifie, plutôt qu'une couverture superficielle de tout le territoire.
+          </p>
+        </div>
+        <div class="md:col-span-7 space-y-4">
+          <div class="border border-border rounded-2xl p-6 bg-card/40 hover:bg-card/70 transition-colors reveal elevate" style="--i:1">
+            <div class="flex items-baseline justify-between">
+              <h3 class="serif text-2xl tracking-tight" data-i18n="about.market.douala_label">Douala</h3>
+              <span class="text-xs text-foreground/45 uppercase tracking-wider">04°03'N · 09°46'E</span>
+            </div>
+            <p class="mt-3 text-sm text-foreground/70 leading-relaxed" data-i18n="about.market.douala_desc">Capitale économique. Bonapriso, Bali, Akwa, Denver, Bonandé. Villas familiales, duplex contemporains et investissements locatifs.</p>
+          </div>
+          <div class="border border-border rounded-2xl p-6 bg-card/40 hover:bg-card/70 transition-colors reveal elevate" style="--i:2">
+            <div class="flex items-baseline justify-between">
+              <h3 class="serif text-2xl tracking-tight" data-i18n="about.market.yaounde_label">Yaoundé</h3>
+              <span class="text-xs text-foreground/45 uppercase tracking-wider">03°51'N · 11°30'E</span>
+            </div>
+            <p class="mt-3 text-sm text-foreground/70 leading-relaxed" data-i18n="about.market.yaounde_desc">Capitale politique. Bastos, Mont Fébé, Omnisport. Demeures diplomatiques, appartements de standing et terrains constructibles.</p>
+          </div>
+          <div class="border border-border rounded-2xl p-6 bg-card/40 hover:bg-card/70 transition-colors reveal elevate" style="--i:3">
+            <div class="flex items-baseline justify-between">
+              <h3 class="serif text-2xl tracking-tight" data-i18n="about.market.kribi_label">Kribi</h3>
+              <span class="text-xs text-foreground/45 uppercase tracking-wider">02°56'N · 09°54'E</span>
+            </div>
+            <p class="mt-3 text-sm text-foreground/70 leading-relaxed" data-i18n="about.market.kribi_desc">Côte atlantique. Terrains titrés avec accès plage, projets de résidence secondaire et opportunités d'investissement hôtelier.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust signals -->
+  <section class="border-b border-border py-20 bg-card/40">
+    <div class="mx-auto max-w-6xl px-5">
+      <div class="mb-12 reveal">
+        <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2" data-i18n="about.trust.tag">En chiffres</div>
+        <h2 data-kinetic="letters" data-i18n="about.trust.title" class="serif text-4xl md:text-5xl tracking-tight">
+          Confiance, méthodiquement construite
+        </h2>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div class="reveal">
+          <div class="stat serif text-5xl md:text-6xl text-[#0F766E] font-medium" data-target="180" data-suffix="+">0</div>
+          <div class="text-xs uppercase tracking-wider text-foreground/60 mt-2" data-i18n="about.trust.transactions_label">Transactions réalisées</div>
+        </div>
+        <div class="reveal">
+          <div class="stat serif text-5xl md:text-6xl text-[#0F766E] font-medium" data-target="12" data-suffix="">0</div>
+          <div class="text-xs uppercase tracking-wider text-foreground/60 mt-2" data-i18n="about.trust.years_label">Années d'expertise</div>
+        </div>
+        <div class="reveal">
+          <div class="stat serif text-5xl md:text-6xl text-[#0F766E] font-medium" data-target="3" data-suffix="">0</div>
+          <div class="text-xs uppercase tracking-wider text-foreground/60 mt-2" data-i18n="about.trust.cities_label">Villes maîtrisées</div>
+        </div>
+        <div class="reveal">
+          <div class="stat serif text-5xl md:text-6xl text-[#0F766E] font-medium" data-target="72" data-suffix="%">0</div>
+          <div class="text-xs uppercase tracking-wider text-foreground/60 mt-2" data-i18n="about.trust.referral_label">Mandats par recommandation</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-20">
+    <div class="max-w-3xl mx-auto text-center px-5 reveal">
+      <h2 class="serif text-4xl md:text-5xl tracking-tight" data-i18n="about.cta.title">Un projet à confier ?</h2>
+      <p class="mt-6 text-foreground/70 text-lg" data-i18n="about.cta.desc">Que vous souhaitiez vendre, acquérir ou simplement être conseillé, nous lisons chaque demande.</p>
+      <div class="mt-10">
+        <a href="/contact" class="inline-block px-10 py-4 bg-foreground text-background font-medium rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer" data-i18n="about.cta.button">
+          Nous contacter
+        </a>
+      </div>
+    </div>
+  </section>
+</MainLayout>

@@ -1,0 +1,250 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ImmoPro — Paper & Ink. Editorial, minimalist, monochrome. */
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+}
+
+:root {
+  --radius: 3px;
+  /* Paper & Ink palette */
+  --background: oklch(0.975 0.005 85);     /* #f5f3ee paper */
+  --foreground: oklch(0.18 0 0);            /* #0d0d0d ink */
+  --card: oklch(0.985 0.004 85);
+  --card-foreground: oklch(0.18 0 0);
+  --popover: oklch(0.985 0.004 85);
+  --popover-foreground: oklch(0.18 0 0);
+  --primary: oklch(0.18 0 0);
+  --primary-foreground: oklch(0.975 0.005 85);
+  --secondary: oklch(0.93 0.006 85);
+  --secondary-foreground: oklch(0.22 0 0);
+  --muted: oklch(0.93 0.006 85);
+  --muted-foreground: oklch(0.45 0 0);
+  --accent: oklch(0.93 0.006 85);
+  --accent-foreground: oklch(0.18 0 0);
+  --destructive: oklch(0.55 0.18 25);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.88 0.006 85);
+  --input: oklch(0.88 0.006 85);
+  --ring: oklch(0.35 0 0);
+}
+
+.dark {
+  --background: oklch(0.18 0 0);
+  --foreground: oklch(0.975 0.005 85);
+  --card: oklch(0.22 0 0);
+  --card-foreground: oklch(0.975 0.005 85);
+  --popover: oklch(0.22 0 0);
+  --popover-foreground: oklch(0.975 0.005 85);
+  --primary: oklch(0.975 0.005 85);
+  --primary-foreground: oklch(0.18 0 0);
+  --secondary: oklch(0.28 0 0);
+  --secondary-foreground: oklch(0.975 0.005 85);
+  --muted: oklch(0.28 0 0);
+  --muted-foreground: oklch(0.7 0 0);
+  --accent: oklch(0.28 0 0);
+  --accent-foreground: oklch(0.975 0.005 85);
+  --destructive: oklch(0.65 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.7 0 0);
+}
+
+/* Base styles */
+@layer base {
+  * { border-color: var(--color-border); }
+  html { font-feature-settings: "ss01", "cv11"; }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, .serif { 
+    font-family: var(--font-serif); 
+    font-weight: 400; 
+    letter-spacing: -0.01em; 
+  }
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+h1, h2, h3, .serif {
+  font-family: "Instrument Serif", Georgia, serif;
+}
+
+/* Motion tokens and utilities from previous work */
+:root {
+  --motion-duration-fast: 150ms;
+  --motion-duration-base: 280ms;
+  --motion-duration-slow: 420ms;
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-ink: cubic-bezier(0.23, 1.0, 0.32, 1);
+}
+
+.elevate {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), 
+              box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.elevate:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px -12px rgb(0 0 0 / 0.08);
+}
+
+.ink-link {
+  position: relative;
+  display: inline-block;
+}
+.ink-link::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ink-link:hover::after {
+  width: 100%;
+}
+
+/* Reveal system */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc((var(--i, 0) - 1) * 80ms);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Shimmer utility — a slow sweeping highlight for premium CTAs */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  animation: shimmer-sweep 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes shimmer-sweep {
+  0%   { transform: translateX(-100%); }
+  60%  { transform: translateX(100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Direction-aware ViewTransitions: forward = right→left, back = left→right.
+   Falls back gracefully if the browser doesn't support View Transitions. */
+@keyframes immopro-slide-from-right {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+@keyframes immopro-slide-to-left {
+  from { opacity: 1; transform: translateX(0);     }
+  to   { opacity: 0; transform: translateX(-28px); }
+}
+@keyframes immopro-slide-from-left {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0);     }
+}
+@keyframes immopro-slide-to-right {
+  from { opacity: 1; transform: translateX(0);    }
+  to   { opacity: 0; transform: translateX(28px); }
+}
+html[data-nav="forward"]::view-transition-old(root) {
+  animation: 260ms cubic-bezier(0.22, 1, 0.36, 1) both immopro-slide-to-left;
+}
+html[data-nav="forward"]::view-transition-new(root) {
+  animation: 320ms cubic-bezier(0.22, 1, 0.36, 1) both immopro-slide-from-right;
+}
+html[data-nav="back"]::view-transition-old(root) {
+  animation: 260ms cubic-bezier(0.22, 1, 0.36, 1) both immopro-slide-to-right;
+}
+html[data-nav="back"]::view-transition-new(root) {
+  animation: 320ms cubic-bezier(0.22, 1, 0.36, 1) both immopro-slide-from-left;
+}
+
+/* Reduced-motion guard — must come AFTER all animation declarations so it wins.
+   Strips animations and transitions, keeps final visual state. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal { opacity: 1; transform: none; }
+  .shimmer::after { display: none; }
+  html::view-transition-old(root),
+  html::view-transition-new(root) {
+    animation: none !important;
+  }
+}
+
+/* Brand Preface styles (restored for elegant preloader) */
+#brand-preface {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+#brand-preface.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+.preface-logo {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: clamp(3.2rem, 8vw, 5.8rem);
+  letter-spacing: -0.035em;
+  color: var(--foreground);
+}
+.preface-tag {
+  font-size: 10px;
+  letter-spacing: 3.5px;
+  text-transform: uppercase;
+  color: var(--foreground);
+  opacity: 0.45;
+  margin-top: 6px;
+}
+.preface-ink {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  width: 180px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--foreground), transparent);
+}

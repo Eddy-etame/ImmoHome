@@ -1,0 +1,96 @@
+---
+// Contact book maintenance utility — archive (clear) the working client book
+---
+
+<div class="border border-border bg-card p-8 rounded-2xl">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+    <div>
+      <div class="font-medium text-xl tracking-tight" data-i18n="atelier.client_archive_title">Archiver le carnet de contacts</div>
+      <div class="text-sm text-foreground/60 mt-1.5" data-i18n="atelier.client_archive_desc">Déplace l'intégralité du carnet vers les archives froides.</div>
+    </div>
+    <button id="atelier-trigger-ca" class="shrink-0 px-8 py-3 bg-destructive text-white text-sm font-medium rounded-xl active:scale-[0.985] cursor-pointer">
+      ARCHIVER
+    </button>
+  </div>
+</div>
+
+<dialog id="atelier-modal-ca" class="backdrop:bg-black/80 p-0 rounded-2xl max-w-lg w-full">
+  <div class="bg-background p-8 rounded-2xl border border-border">
+    <div class="text-destructive text-xs tracking-[2.5px] mb-2" data-i18n="atelier.irreversible">ACTION IRRÉVERSIBLE</div>
+    <h3 class="text-2xl font-medium tracking-tight mb-6" data-i18n="atelier.client_archive_title">Archiver le carnet de contacts</h3>
+
+    <form id="atelier-form-ca">
+      <div class="mb-6">
+        <label class="block text-xs tracking-widest mb-2 text-foreground/60" data-i18n="atelier.reason">RAISON</label>
+        <textarea name="reason" required rows="3" class="w-full bg-transparent border border-border px-4 py-3 text-sm rounded-xl" placeholder="..."></textarea>
+      </div>
+      <div class="mb-6">
+        <label class="block text-xs tracking-widest mb-2 text-foreground/60" data-i18n="atelier.confirm_typed">TAPEZ POUR CONFIRMER</label>
+        <input type="text" name="confirmation" required placeholder="ARCHIVE CONTACTS" class="w-full bg-transparent border border-border px-4 py-3 font-mono text-sm tracking-widest rounded-xl">
+      </div>
+      <div class="flex items-start gap-2 mb-6">
+        <input type="checkbox" name="irreversible" id="atelier-irrev-ca" required class="mt-1 cursor-pointer">
+        <label for="atelier-irrev-ca" class="text-xs text-foreground/70 cursor-pointer" data-i18n="atelier.irrev_check">Je comprends que cette action est définitive.</label>
+      </div>
+      <div class="flex gap-3">
+        <button type="button" id="atelier-cancel-ca" class="flex-1 py-3 border border-border rounded-xl cursor-pointer" data-i18n="atelier.cancel">Annuler</button>
+        <button type="submit" class="flex-1 py-3 bg-destructive text-white rounded-xl cursor-pointer" data-i18n="atelier.execute">Exécuter</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<script>
+  const GATE_KEY = '_im_a_sess';
+
+  function init() {
+    const trigger = document.getElementById('atelier-trigger-ca');
+    const modal = document.getElementById('atelier-modal-ca') as HTMLDialogElement | null;
+    const form = document.getElementById('atelier-form-ca') as HTMLFormElement | null;
+    const cancel = document.getElementById('atelier-cancel-ca');
+
+    trigger?.addEventListener('click', () => {
+      if (sessionStorage.getItem(GATE_KEY) !== '1') return;
+      modal?.showModal();
+    });
+    cancel?.addEventListener('click', () => modal?.close());
+
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (sessionStorage.getItem(GATE_KEY) !== '1') return;
+
+      const formData = new FormData(form);
+      const reason = String(formData.get('reason') || '');
+      const confirmation = String(formData.get('confirmation') || '');
+      const irreversible = formData.get('irreversible');
+
+      if (confirmation !== 'ARCHIVE CONTACTS' || !irreversible) {
+        alert('Confirmation incorrecte.');
+        return;
+      }
+
+      // Perform the operation
+      localStorage.removeItem('immopro_clients');
+      localStorage.removeItem('immopro_appointments');
+
+      // Record event (sanitized)
+      const logs = JSON.parse(localStorage.getItem('_im_log') || '[]');
+      logs.unshift({
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        action: 'CONTACTS_ARCHIVED',
+        reason: reason.slice(0, 500),
+        actor: 'editorial'
+      });
+      localStorage.setItem('_im_log', JSON.stringify(logs));
+
+      modal?.close();
+      form.reset();
+      alert('Opération exécutée.');
+      (window as any).renderEventLog?.();
+    });
+  }
+
+  init();
+  document.addEventListener('astro:page-load', init);
+</script>

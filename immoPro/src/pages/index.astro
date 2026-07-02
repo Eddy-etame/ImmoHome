@@ -1,0 +1,366 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import { INITIAL_PROPERTIES } from '../lib/data.ts';
+
+const featured = INITIAL_PROPERTIES.slice(0, 3);
+---
+
+<MainLayout>
+  <!-- Hero -->
+  <section class="border-b border-border">
+    <div class="mx-auto max-w-6xl px-5 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
+      <div class="reveal">
+        <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50" data-i18n="tag.cameroun">Immobilier · Cameroun</div>
+        <h1 data-kinetic="typewriter" data-i18n="hero.title" class="serif mt-4 text-6xl md:text-7xl tracking-[-2.8px] leading-none">
+          L'immobilier, sans bruit.
+        </h1>
+        <p data-i18n="hero.subtitle" class="mt-6 max-w-md text-xl text-foreground/70">
+          Une sélection d'appartements, villas et terrains à Douala, Yaoundé et au-delà.
+        </p>
+        <div class="mt-10 flex flex-wrap gap-4">
+          <a href="/properties" data-i18n="hero.cta.properties" class="px-8 py-3.5 border border-foreground text-sm tracking-widest hover:bg-foreground hover:text-background transition-all rounded-xl cursor-pointer">
+            Voir les biens →
+          </a>
+          <button onclick="window.subscribeForAlerts && window.subscribeForAlerts()" data-i18n="hero.cta.contact" 
+                  class="px-8 py-3.5 border border-border text-sm tracking-widest hover:border-foreground transition-all rounded-xl cursor-pointer bg-transparent">
+            Nous contacter
+          </button>
+        </div>
+      </div>
+      <div class="relative aspect-[4/5] md:aspect-auto overflow-hidden rounded-3xl bg-secondary reveal">
+        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80" 
+             alt="Villa contemporaine" class="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured -->
+  <section class="mx-auto max-w-6xl px-5 py-16">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
+      <div class="reveal">
+        <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50">01</div>
+        <h2 data-kinetic="letters" data-i18n="section.selection" class="serif text-4xl tracking-tight">Sélection du moment</h2>
+        <p data-i18n="section.selection.desc" class="text-sm text-foreground/60">Quelques biens choisis avec soin.</p>
+      </div>
+      <a href="/properties" class="text-sm hover:text-[#0F766E] ink-link reveal" data-i18n="cta.explore">Explorer les biens disponibles →</a>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      {featured.map((p, idx) => (
+        <div class="property-card group border border-border rounded-2xl overflow-hidden reveal elevate" data-id={p.id} style={`--i:${idx + 1}`}>
+          <div class="relative">
+            <img src={p.image} class="w-full aspect-[16/10] object-cover" />
+            <button data-heart={p.id} class="heart absolute top-4 right-4 text-2xl text-white/90 cursor-pointer transition-transform hover:scale-110 active:scale-95" aria-label="Favori">♡</button>
+          </div>
+          <a href={`/properties/${p.id}`} class="block p-5">
+            <h3 class="serif text-xl">{p.title}</h3>
+            <p class="text-sm text-foreground/60 mt-1">{p.city} · {p.surface} m² {p.rooms ? `· ${p.rooms} chambres` : ''}</p>
+            <div class="mt-4 flex justify-between items-baseline">
+              <div class="text-lg font-medium">{new Intl.NumberFormat('fr-FR').format(p.price)} FCFA</div>
+              <div class="text-xs text-foreground/50 group-hover:text-[#0F766E]">Voir →</div>
+            </div>
+          </a>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="border-t border-border py-16 bg-background">
+    <div class="mx-auto max-w-6xl px-5">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div class="reveal">
+          <div class="stat serif text-5xl md:text-6xl text-[#0F766E] font-medium" data-target="240" data-suffix="+">0</div>
+          <div class="text-xs uppercase tracking-wider text-foreground/60 mt-2">Biens répertoriés</div>
+        </div>
+        <div class="reveal">
+          <div class="stat serif text-5xl md:text-6xl text-[#0F766E] font-medium" data-target="150" data-suffix="+">0</div>
+          <div class="text-xs uppercase tracking-wider text-foreground/60 mt-2">Clients satisfaits</div>
+        </div>
+        <div class="reveal">
+          <div class="stat serif text-5xl md:text-6xl text-[#0F766E] font-medium" data-target="98" data-suffix="%">0</div>
+          <div class="text-xs uppercase tracking-wider text-foreground/60 mt-2">Taux de recommandation</div>
+        </div>
+        <div class="reveal">
+          <div class="stat serif text-5xl md:text-6xl text-[#0F766E] font-medium" data-target="12" data-suffix="">0</div>
+          <div class="text-xs uppercase tracking-wider text-foreground/60 mt-2">Années d'expertise</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Engagement section (restored richness) -->
+  <section class="border-t border-border py-16 bg-card">
+    <div class="mx-auto max-w-6xl px-5">
+      <div class="text-center mb-12 reveal">
+        <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2">02</div>
+        <h3 data-kinetic="letters" data-i18n="section.engagement" class="serif text-4xl tracking-tight">Engagement & Transparence</h3>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="p-8 border border-border rounded-2xl group bg-background/50 hover:bg-background transition-all duration-300 reveal elevate" style="--i:1">
+          <div class="w-10 h-10 rounded-full bg-[#0F766E]/10 flex items-center justify-center mb-6">✧</div>
+          <h4 class="font-medium text-xl mb-3">Visite personnelle</h4>
+          <p class="text-foreground/70 text-sm">Nous ne listons jamais un bien sans l'avoir visité et validé nous-mêmes.</p>
+        </div>
+        <div class="p-8 border border-border rounded-2xl group bg-background/50 hover:bg-background transition-all duration-300 reveal elevate" style="--i:2">
+          <div class="w-10 h-10 rounded-full bg-[#0F766E]/10 flex items-center justify-center mb-6">✦</div>
+          <h4 class="font-medium text-xl mb-3">Prix vérifiés</h4>
+          <p class="text-foreground/70 text-sm">Chaque prix de présentation est audité pour correspondre aux réalités du marché camerounais.</p>
+        </div>
+        <div class="p-8 border border-border rounded-2xl group bg-background/50 hover:bg-background transition-all duration-300 reveal elevate" style="--i:3">
+          <div class="w-10 h-10 rounded-full bg-[#0F766E]/10 flex items-center justify-center mb-6">✦</div>
+          <h4 class="font-medium text-xl mb-3">Accompagnement</h4>
+          <p class="text-foreground/70 text-sm">De la signature chez le notaire à l'installation définitive, nous restons à vos côtés.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Process Steps -->
+  <section class="border-t border-border py-20">
+    <div class="mx-auto max-w-6xl px-5">
+      <div class="mb-14 reveal max-w-2xl">
+        <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2" data-i18n="home.process.tag">03</div>
+        <h3 data-kinetic="letters" data-i18n="home.process.title" class="serif text-4xl md:text-5xl tracking-tight">Notre méthode, en quatre temps</h3>
+        <p class="text-sm text-foreground/60 mt-3" data-i18n="home.process.subtitle">Un accompagnement structuré, sans précipitation.</p>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="reveal elevate process-step" style="--i:1">
+          <div class="text-xs uppercase tracking-[0.2em] text-[#0F766E] font-medium">01</div>
+          <div class="mt-2 h-px bg-foreground/20 w-12"></div>
+          <h4 class="serif text-2xl tracking-tight mt-5" data-i18n="home.process.step1.title">Découverte</h4>
+          <p class="text-sm text-foreground/70 mt-3 leading-relaxed" data-i18n="home.process.step1.desc">Entretien approfondi. Nous comprenons vos critères, vos contraintes, votre horizon.</p>
+        </div>
+        <div class="reveal elevate process-step" style="--i:2">
+          <div class="text-xs uppercase tracking-[0.2em] text-[#0F766E] font-medium">02</div>
+          <div class="mt-2 h-px bg-foreground/20 w-12"></div>
+          <h4 class="serif text-2xl tracking-tight mt-5" data-i18n="home.process.step2.title">Curation</h4>
+          <p class="text-sm text-foreground/70 mt-3 leading-relaxed" data-i18n="home.process.step2.desc">Sélection sur mesure parmi notre vivier interne et notre réseau de propriétaires.</p>
+        </div>
+        <div class="reveal elevate process-step" style="--i:3">
+          <div class="text-xs uppercase tracking-[0.2em] text-[#0F766E] font-medium">03</div>
+          <div class="mt-2 h-px bg-foreground/20 w-12"></div>
+          <h4 class="serif text-2xl tracking-tight mt-5" data-i18n="home.process.step3.title">Visite privée</h4>
+          <p class="text-sm text-foreground/70 mt-3 leading-relaxed" data-i18n="home.process.step3.desc">Visite accompagnée, sans pression. Analyse technique, juridique et patrimoniale.</p>
+        </div>
+        <div class="reveal elevate process-step" style="--i:4">
+          <div class="text-xs uppercase tracking-[0.2em] text-[#0F766E] font-medium">04</div>
+          <div class="mt-2 h-px bg-foreground/20 w-12"></div>
+          <h4 class="serif text-2xl tracking-tight mt-5" data-i18n="home.process.step4.title">Signature</h4>
+          <p class="text-sm text-foreground/70 mt-3 leading-relaxed" data-i18n="home.process.step4.desc">Négociation, accompagnement notarial, transfert de propriété. Nous restons jusqu'à la clé en main.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Territories -->
+  <section class="border-t border-border py-20 bg-card/40">
+    <div class="mx-auto max-w-6xl px-5">
+      <div class="mb-14 reveal max-w-2xl">
+        <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2" data-i18n="home.territory.tag">04</div>
+        <h3 data-kinetic="letters" data-i18n="home.territory.title" class="serif text-4xl md:text-5xl tracking-tight">Trois territoires, trois exigences</h3>
+        <p class="text-sm text-foreground/60 mt-3" data-i18n="home.territory.subtitle">Notre couverture est volontairement concentrée.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <a href="/properties" class="group relative overflow-hidden rounded-2xl border border-border reveal elevate block aspect-[4/5]" style="--i:1">
+          <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80" alt="Douala" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+            <div class="text-[10px] uppercase tracking-[0.2em] text-white/70" data-i18n="home.territory.douala_subtitle">Capitale économique</div>
+            <h4 class="serif text-3xl tracking-tight mt-1">Douala</h4>
+            <div class="text-xs text-white/80 mt-3 opacity-0 group-hover:opacity-100 transition-opacity" data-i18n="home.territory.cta">Voir les biens →</div>
+          </div>
+        </a>
+        <a href="/properties" class="group relative overflow-hidden rounded-2xl border border-border reveal elevate block aspect-[4/5]" style="--i:2">
+          <img src="https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=900&q=80" alt="Yaoundé" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+            <div class="text-[10px] uppercase tracking-[0.2em] text-white/70" data-i18n="home.territory.yaounde_subtitle">Capitale politique</div>
+            <h4 class="serif text-3xl tracking-tight mt-1">Yaoundé</h4>
+            <div class="text-xs text-white/80 mt-3 opacity-0 group-hover:opacity-100 transition-opacity" data-i18n="home.territory.cta">Voir les biens →</div>
+          </div>
+        </a>
+        <a href="/properties" class="group relative overflow-hidden rounded-2xl border border-border reveal elevate block aspect-[4/5]" style="--i:3">
+          <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80" alt="Kribi" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+            <div class="text-[10px] uppercase tracking-[0.2em] text-white/70" data-i18n="home.territory.kribi_subtitle">Côte atlantique</div>
+            <h4 class="serif text-3xl tracking-tight mt-1">Kribi</h4>
+            <div class="text-xs text-white/80 mt-3 opacity-0 group-hover:opacity-100 transition-opacity" data-i18n="home.territory.cta">Voir les biens →</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="border-t border-border py-20">
+    <div class="mx-auto max-w-6xl px-5">
+      <div class="mb-14 reveal max-w-2xl">
+        <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2" data-i18n="home.testimonials.tag">05</div>
+        <h3 data-kinetic="letters" data-i18n="home.testimonials.title" class="serif text-4xl md:text-5xl tracking-tight">Ce que disent nos clients</h3>
+      </div>
+    </div>
+    <!-- Marquee track, edge-to-edge -->
+    <div class="testimonial-marquee">
+      <div class="testimonial-track">
+        <!-- Track is rendered twice for seamless loop -->
+        <div class="testimonial-card">
+          <blockquote class="serif text-lg italic leading-snug" data-i18n="home.testimonials.1.text">“Une discrétion irréprochable et un suivi qui ne s'arrête pas à la signature. Je recommande sans hésiter.”</blockquote>
+          <div class="mt-4 text-xs uppercase tracking-wider text-foreground/55" data-i18n="home.testimonials.1.author">Marie-Christine T. — Bonapriso</div>
+        </div>
+        <div class="testimonial-card">
+          <blockquote class="serif text-lg italic leading-snug" data-i18n="home.testimonials.2.text">“Ils ont pris le temps de comprendre nos contraintes diplomatiques. La transaction s'est faite en confiance.”</blockquote>
+          <div class="mt-4 text-xs uppercase tracking-wider text-foreground/55" data-i18n="home.testimonials.2.author">Jean-Paul N. — Bastos</div>
+        </div>
+        <div class="testimonial-card">
+          <blockquote class="serif text-lg italic leading-snug" data-i18n="home.testimonials.3.text">“Mon investissement à Kribi a été audité jusqu'au moindre détail. Aucune mauvaise surprise.”</blockquote>
+          <div class="mt-4 text-xs uppercase tracking-wider text-foreground/55" data-i18n="home.testimonials.3.author">Aïssatou M. — Yaoundé</div>
+        </div>
+        <div class="testimonial-card">
+          <blockquote class="serif text-lg italic leading-snug" data-i18n="home.testimonials.4.text">“Ils ne vendent pas, ils accompagnent. C'est rare et c'est précieux.”</blockquote>
+          <div class="mt-4 text-xs uppercase tracking-wider text-foreground/55" data-i18n="home.testimonials.4.author">Patrick K. — Douala</div>
+        </div>
+        <!-- Duplicate for seamless loop -->
+        <div class="testimonial-card" aria-hidden="true">
+          <blockquote class="serif text-lg italic leading-snug" data-i18n="home.testimonials.1.text">“Une discrétion irréprochable et un suivi qui ne s'arrête pas à la signature. Je recommande sans hésiter.”</blockquote>
+          <div class="mt-4 text-xs uppercase tracking-wider text-foreground/55" data-i18n="home.testimonials.1.author">Marie-Christine T. — Bonapriso</div>
+        </div>
+        <div class="testimonial-card" aria-hidden="true">
+          <blockquote class="serif text-lg italic leading-snug" data-i18n="home.testimonials.2.text">“Ils ont pris le temps de comprendre nos contraintes diplomatiques. La transaction s'est faite en confiance.”</blockquote>
+          <div class="mt-4 text-xs uppercase tracking-wider text-foreground/55" data-i18n="home.testimonials.2.author">Jean-Paul N. — Bastos</div>
+        </div>
+        <div class="testimonial-card" aria-hidden="true">
+          <blockquote class="serif text-lg italic leading-snug" data-i18n="home.testimonials.3.text">“Mon investissement à Kribi a été audité jusqu'au moindre détail. Aucune mauvaise surprise.”</blockquote>
+          <div class="mt-4 text-xs uppercase tracking-wider text-foreground/55" data-i18n="home.testimonials.3.author">Aïssatou M. — Yaoundé</div>
+        </div>
+        <div class="testimonial-card" aria-hidden="true">
+          <blockquote class="serif text-lg italic leading-snug" data-i18n="home.testimonials.4.text">“Ils ne vendent pas, ils accompagnent. C'est rare et c'est précieux.”</blockquote>
+          <div class="mt-4 text-xs uppercase tracking-wider text-foreground/55" data-i18n="home.testimonials.4.author">Patrick K. — Douala</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Subscribe inline form -->
+  <section class="border-t border-border py-20 bg-card">
+    <div class="max-w-2xl mx-auto px-5 reveal text-center">
+      <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2" data-i18n="home.subscribe.tag">06</div>
+      <h3 data-kinetic="letters" data-i18n="home.subscribe.title" class="serif text-4xl md:text-5xl tracking-tight">Recevez nos exclusivités</h3>
+      <p class="text-sm text-foreground/65 mt-4" data-i18n="home.subscribe.desc">Une sélection mensuelle, jamais d'envois intempestifs. Réservé aux abonnés.</p>
+
+      <form id="sub-form" class="mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto" novalidate>
+        <input id="sub-email" type="email" required aria-label="Email"
+               placeholder="votre@email.com"
+               data-i18n-placeholder="home.subscribe.placeholder"
+               class="flex-1 border border-border px-4 py-3 rounded-xl text-sm bg-background focus:outline-none focus:border-foreground transition-colors" />
+        <button type="submit"
+                class="px-6 py-3 bg-foreground text-background font-medium rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer active:scale-[0.985]"
+                data-i18n="home.subscribe.button">M'inscrire</button>
+      </form>
+
+      <p id="sub-msg" class="mt-4 text-sm hidden"></p>
+      <p class="mt-6 text-[11px] uppercase tracking-wider text-foreground/45" data-i18n="home.subscribe.legal">Pas de spam. Désinscription en un clic.</p>
+    </div>
+  </section>
+
+  <script>
+    import { toggleFavorite, isFavorited } from '../lib/favorites.ts';
+    import { INITIAL_PROPERTIES, type Property } from '../lib/data.ts';
+    import { t } from '../lib/i18n.ts';
+
+    function initFavorites() {
+      document.querySelectorAll('[data-heart]').forEach(btn => {
+        const id = btn.getAttribute('data-heart');
+        if (!id) return;
+
+        btn.textContent = isFavorited(id) ? '♥' : '♡';
+
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const prop = INITIAL_PROPERTIES.find((p: Property) => p.id === id);
+          if (prop) {
+            const added = toggleFavorite(prop);
+            btn.textContent = added ? '♥' : '♡';
+          }
+        });
+      });
+    }
+
+    function setupSubscribe() {
+      const form = document.getElementById('sub-form') as HTMLFormElement | null;
+      const input = document.getElementById('sub-email') as HTMLInputElement | null;
+      const msg = document.getElementById('sub-msg') as HTMLElement | null;
+      if (!form || !input || !msg) return;
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = (input.value || '').trim();
+        const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+        msg.classList.remove('hidden');
+        if (!valid) {
+          msg.className = 'mt-4 text-sm text-destructive';
+          msg.textContent = t('home.subscribe.invalid');
+          return;
+        }
+
+        const subs: string[] = JSON.parse(localStorage.getItem('immopro_subscribers') || '[]');
+        if (!subs.includes(email)) {
+          subs.push(email);
+          localStorage.setItem('immopro_subscribers', JSON.stringify(subs));
+        }
+
+        msg.className = 'mt-4 text-sm text-[#0F766E]';
+        msg.textContent = t('home.subscribe.success');
+        input.value = '';
+        setTimeout(() => msg.classList.add('hidden'), 6000);
+      });
+    }
+
+    document.addEventListener('astro:page-load', () => {
+      initFavorites();
+      setupSubscribe();
+    });
+    initFavorites();
+    setupSubscribe();
+  </script>
+
+  <style>
+    /* Testimonial marquee - CSS-only seamless loop */
+    .testimonial-marquee {
+      mask-image: linear-gradient(to right, transparent 0, #000 64px, #000 calc(100% - 64px), transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0, #000 64px, #000 calc(100% - 64px), transparent 100%);
+      overflow: hidden;
+    }
+    .testimonial-track {
+      display: flex;
+      gap: 1.5rem;
+      width: max-content;
+      animation: testimonial-scroll 56s linear infinite;
+    }
+    .testimonial-marquee:hover .testimonial-track {
+      animation-play-state: paused;
+    }
+    .testimonial-card {
+      flex: 0 0 360px;
+      padding: 2rem;
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 1.25rem;
+    }
+    @keyframes testimonial-scroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(calc(-50% - 0.75rem)); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .testimonial-track { animation: none; transform: none; }
+      .testimonial-marquee {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+      }
+      .testimonial-card { scroll-snap-align: center; }
+    }
+  </style>
+</MainLayout>

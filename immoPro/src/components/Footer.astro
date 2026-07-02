@@ -1,0 +1,37 @@
+---
+---
+
+<footer class="mt-24 border-t border-border">
+  <div class="mx-auto max-w-6xl px-5 py-12 text-sm text-foreground/60">
+    <div class="grid md:grid-cols-12 gap-y-8">
+      <div class="md:col-span-5">
+        <div class="serif text-xl text-foreground" data-i18n="footer.brand">ImmoPro</div>
+        <p class="mt-2 max-w-sm text-foreground/65" data-i18n="footer.promise">
+          Immobilier d’exception au Cameroun. Discrétion, rigueur et accompagnement sur la durée.
+        </p>
+        <button onclick="window.subscribeForAlerts && window.subscribeForAlerts()" 
+                class="mt-6 text-xs uppercase tracking-[2px] border-b border-foreground/60 pb-px hover:text-[#0F766E] hover:border-[#0F766E] transition-colors"
+                data-i18n="footer.subscribe">
+          Être informé des nouvelles exclusivités
+        </button>
+      </div>
+
+      <div class="md:col-span-3">
+        <div class="uppercase tracking-[1.5px] text-[10px] mb-3 text-foreground/50" data-i18n="footer.nav">Navigation</div>
+        <div class="space-y-1.5">
+          <a href="/properties" class="block hover:text-foreground" data-i18n="nav.properties">Biens</a>
+          <a href="/about" class="block hover:text-foreground" data-i18n="nav.about">À propos</a>
+          <a href="/contact" class="block hover:text-foreground" data-i18n="nav.contact">Contact</a>
+        </div>
+      </div>
+
+      <div class="md:col-span-4">
+        <div class="uppercase tracking-[1.5px] text-[10px] mb-3 text-foreground/50" data-i18n="footer.territories">Nos territoires</div>
+        <div data-i18n="footer.douala">Douala · Yaoundé · Kribi</div>
+        <div class="mt-6 text-[10px] text-foreground/50">
+          © {new Date().getFullYear()} <span data-i18n="footer.brand">ImmoPro</span>. <span data-i18n="footer.copyright">Tous droits réservés.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

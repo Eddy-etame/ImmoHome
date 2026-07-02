@@ -1,0 +1,64 @@
+---
+// Brand Preface — Elegant preloader for ImmoPro (Paper & Ink)
+// Shows on first hard load / new session, re-triggers on reload as per user preference for lively experience.
+// Does not spam on soft ViewTransitions.
+---
+
+<div id="brand-preface" data-preface="true">
+  <div class="preface-inner">
+    <div class="preface-logo">ImmoPro</div>
+    <div class="preface-tag">Cameroun • Immobilier d’Exception</div>
+    <div class="preface-ink"></div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const PREFACE_KEY = 'immopro_has_seen_preface';
+    const preface = document.getElementById('brand-preface');
+
+    if (!preface) return;
+
+    const hasSeen = sessionStorage.getItem(PREFACE_KEY) === 'true';
+
+    const forceRemove = () => {
+      if (preface && preface.parentNode) {
+        preface.parentNode.removeChild(preface);
+      }
+    };
+
+    if (!hasSeen) {
+      sessionStorage.setItem(PREFACE_KEY, 'true');
+
+      const hide = () => {
+        preface.classList.add('fade-out');
+        setTimeout(() => {
+          forceRemove();
+        }, 420);
+      };
+
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const duration = prefersReduced ? 420 : 1350;
+
+      setTimeout(hide, duration);
+
+      const dismiss = () => {
+        if (!preface.classList.contains('fade-out')) hide();
+      };
+
+      window.addEventListener('keydown', dismiss, { once: true });
+      preface.addEventListener('click', dismiss, { once: true });
+    } else {
+      forceRemove();
+    }
+
+    // ViewTransitions safety
+    const cleanup = () => {
+      const existing = document.getElementById('brand-preface');
+      if (existing) existing.remove();
+    };
+
+    document.addEventListener('astro:before-preparation', cleanup);
+    document.addEventListener('astro:after-swap', cleanup);
+  })();
+</script>

@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+.astro/
+.vercel/
+.netlify/
+out/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Editor / IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Cursor specific
+.cursor/
+
+# Remotion related (if rendering locally)
+*.mp4
+*.webm
+*.mov
+.remotion/
+out/
+
+# Legacy server (if kept inside)
+legacy-react/server/uploads/
+legacy-react/server/.env
+legacy-react/server/dist/
+
+# Misc
+*.tsbuildinfo
+.cache/
+temp/
+tmp/

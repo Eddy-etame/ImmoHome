@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+.output/
+.vercel/
+.netlify/
+.astro/
+out/
+build/
+
+# Environment / secrets (never commit these)
+.env
+.env.*
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Editor / IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Cursor specific
+.cursor/
+
+# Rendered video output
+*.mp4
+*.webm
+*.mov
+.remotion/
+
+# Misc
+*.tsbuildinfo
+.cache/
+temp/
+tmp/

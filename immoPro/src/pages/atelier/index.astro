@@ -1,0 +1,95 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import CatalogReset from '../../components/atelier/CatalogReset.astro';
+import ClientArchive from '../../components/atelier/ClientArchive.astro';
+import EventLog from '../../components/atelier/EventLog.astro';
+---
+
+<MainLayout
+  title="Atelier · ImmoPro"
+  description="Notes et brouillons internes de l'équipe éditoriale ImmoPro."
+>
+  <!-- Editorial workshop cover (visible to anyone) -->
+  <div id="atelier-cover" class="max-w-3xl mx-auto px-5 py-16">
+    <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-3" data-i18n="atelier.cover_tag">Notes internes</div>
+    <h1 class="serif text-5xl tracking-tight mb-4 reveal" data-i18n="atelier.title">Atelier éditorial</h1>
+    <p class="text-lg text-foreground/70 reveal" data-i18n="atelier.subtitle">
+      Espace de travail interne pour l'équipe éditoriale ImmoPro. Brouillons et notes de style.
+    </p>
+    <p class="text-sm text-foreground/50 mt-8 reveal" data-i18n="atelier.cover_note">
+      Section en cours de réorganisation. Revenez bientôt.
+    </p>
+  </div>
+
+  <!-- Maintenance operations (hidden by default; revealed only after passphrase unlock) -->
+  <div id="atelier-ops" class="max-w-6xl mx-auto px-5 py-10 space-y-6" style="display: none;">
+    <div class="mb-8">
+      <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2" data-i18n="atelier.maintenance_tag">Maintenance éditoriale</div>
+      <h2 class="serif text-4xl tracking-tight" data-i18n="atelier.title">Atelier éditorial</h2>
+      <p class="text-sm text-foreground/60 mt-2" data-i18n="atelier.maintenance_note">
+        Utilitaires sensibles. Chaque action est journalisée.
+      </p>
+    </div>
+
+    <CatalogReset />
+    <ClientArchive />
+    <EventLog />
+
+    <div class="text-xs text-foreground/40 pt-4">
+      <button id="atelier-lock-btn" class="hover:text-foreground transition-colors cursor-pointer" data-i18n="atelier.lock">Verrouiller la session</button>
+    </div>
+  </div>
+
+  <script>
+    const GATE_KEY = '_im_a_sess';
+    const HASH_TRIGGER = '#draft';
+    // SHA-256 hash of the unlock passphrase (placeholder; change for production deployment)
+    const KEY_HASH = '56549741458615a3ded773e1bc5770b1402e57726f640d053f96ac809c1db647';
+
+    async function sha256(text: string): Promise<string> {
+      const buf = new TextEncoder().encode(text);
+      const hash = await crypto.subtle.digest('SHA-256', buf);
+      return Array.from(new Uint8Array(hash))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+
+    function reveal() {
+      const cover = document.getElementById('atelier-cover');
+      const ops = document.getElementById('atelier-ops');
+      if (cover) cover.style.display = 'none';
+      if (ops) ops.style.display = 'block';
+    }
+
+    function lock() {
+      sessionStorage.removeItem(GATE_KEY);
+      window.location.reload();
+    }
+
+    async function attemptUnlock() {
+      if (sessionStorage.getItem(GATE_KEY) === '1') {
+        reveal();
+        return;
+      }
+      if (window.location.hash === HASH_TRIGGER) {
+        const input = prompt('Code:');
+        if (input) {
+          const hashed = await sha256(input);
+          if (hashed === KEY_HASH) {
+            sessionStorage.setItem(GATE_KEY, '1');
+            history.replaceState(null, '', window.location.pathname);
+            reveal();
+          }
+        }
+      }
+    }
+
+    function init() {
+      attemptUnlock();
+      document.getElementById('atelier-lock-btn')?.addEventListener('click', lock);
+    }
+
+    init();
+    document.addEventListener('astro:page-load', init);
+  </script>
+</MainLayout>

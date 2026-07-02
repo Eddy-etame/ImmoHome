@@ -1,0 +1,259 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://logiciel-formulaire.vercel.app';
+---
+
+<MainLayout title="Contact • ImmoPro" description="Contactez ImmoPro pour vos projets immobiliers d'exception au Cameroun. Douala · Yaoundé · Kribi.">
+  <section class="border-b border-border">
+    <div class="mx-auto max-w-5xl px-5 py-20 md:py-24">
+      <h1 data-kinetic="letters" data-i18n="contact.title" class="serif text-5xl md:text-7xl tracking-[-2.4px] leading-[0.95] reveal">
+        Restons en contact
+      </h1>
+      <p class="mt-6 text-lg text-foreground/70 max-w-2xl reveal" data-i18n="contact.subtitle">
+        Un projet, une question, un mandat à nous confier ? Écrivez-nous.
+      </p>
+    </div>
+  </section>
+
+  <section class="py-16">
+    <div class="mx-auto max-w-6xl px-5 grid md:grid-cols-2 gap-12">
+      <!-- Contact Form -->
+      <div class="reveal elevate" style="--i:1">
+        <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2" data-i18n="contact.form.tag">Formulaire</div>
+        <p class="text-sm text-foreground/60 mb-8" data-i18n="contact.form.intro">Réponse sous 24h ouvrées. Confidentialité garantie.</p>
+
+        <form id="contact-form" action={`${apiUrl}/api/submit/0e2ee02e-3e55-40db-952c-d54edea2a425`} method="POST" class="space-y-5" novalidate>
+          <div>
+            <input type="text" name="_gotcha" style="display:none" tabindex="-1" />
+            <input type="hidden" name="_lang" id="cf-lang" value="fr" />
+            <label for="cf-name" class="block text-sm font-medium mb-2" data-i18n="contact.form.name">Nom complet</label>
+            <input id="cf-name" name="nom" type="text" required
+                   placeholder="Mme/M."
+                   data-i18n-placeholder="contact.form.name_placeholder"
+                   class="w-full border border-border px-4 py-3 rounded-xl text-sm bg-background focus:outline-none focus:border-foreground transition-colors" />
+            <p class="cf-err text-xs text-destructive mt-1 hidden" data-err-for="cf-name"></p>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label for="cf-email" class="block text-sm font-medium mb-2" data-i18n="contact.form.email">Adresse email</label>
+              <input id="cf-email" name="email" type="email" required
+                     placeholder="vous@exemple.com"
+                     data-i18n-placeholder="contact.form.email_placeholder"
+                     class="w-full border border-border px-4 py-3 rounded-xl text-sm bg-background focus:outline-none focus:border-foreground transition-colors" />
+              <p class="cf-err text-xs text-destructive mt-1 hidden" data-err-for="cf-email"></p>
+            </div>
+            <div>
+              <label for="cf-phone" class="block text-sm font-medium mb-2" data-i18n="contact.form.phone">Téléphone</label>
+              <input id="cf-phone" name="telephone" type="tel"
+                     placeholder="+237 6 XX XX XX XX"
+                     data-i18n-placeholder="contact.form.phone_placeholder"
+                     class="w-full border border-border px-4 py-3 rounded-xl text-sm bg-background focus:outline-none focus:border-foreground transition-colors" />
+            </div>
+          </div>
+          <div>
+            <label for="cf-message" class="block text-sm font-medium mb-2" data-i18n="contact.form.message">Votre message</label>
+            <textarea id="cf-message" name="message" rows="5" required
+                      placeholder="Décrivez votre projet ou votre question…"
+                      data-i18n-placeholder="contact.form.message_placeholder"
+                      class="w-full border border-border px-4 py-3 rounded-xl text-sm bg-background focus:outline-none focus:border-foreground transition-colors resize-y"></textarea>
+            <p class="cf-err text-xs text-destructive mt-1 hidden" data-err-for="cf-message"></p>
+          </div>
+          <button type="submit"
+                  class="w-full py-4 bg-foreground text-background font-medium rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer active:scale-[0.985]"
+                  data-i18n="contact.form.submit">
+            Envoyer le message
+          </button>
+        </form>
+
+        <div id="cf-result" class="mt-6 p-4 rounded-xl text-sm hidden"></div>
+      </div>
+
+      <!-- Coordinates + WhatsApp -->
+      <div class="space-y-6">
+        <div class="reveal elevate" style="--i:2">
+          <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2" data-i18n="contact.info.tag">Coordonnées</div>
+          <h2 data-i18n="contact.info.title" class="serif text-3xl tracking-tight mb-6">Nos coordonnées</h2>
+
+          <dl class="space-y-4 text-sm">
+            <div class="flex gap-4 items-start py-3 border-b border-border">
+              <span class="text-foreground/45 w-6 text-lg">☎</span>
+              <div class="flex-1">
+                <dt class="text-xs uppercase tracking-wider text-foreground/50" data-i18n="contact.info.phone_label">Téléphone</dt>
+                <dd class="mt-1"><a href="tel:+237600000000" class="font-medium hover:text-[#0F766E] transition-colors">+237 6 00 00 00 00</a></dd>
+              </div>
+            </div>
+            <div class="flex gap-4 items-start py-3 border-b border-border">
+              <span class="text-foreground/45 w-6 text-lg">✉</span>
+              <div class="flex-1">
+                <dt class="text-xs uppercase tracking-wider text-foreground/50" data-i18n="contact.info.email_label">Email</dt>
+                <dd class="mt-1"><a href="mailto:contact@immopro.cm" class="font-medium hover:text-[#0F766E] transition-colors">contact@immopro.cm</a></dd>
+              </div>
+            </div>
+            <div class="flex gap-4 items-start py-3 border-b border-border">
+              <span class="text-foreground/45 w-6 text-lg">⌂</span>
+              <div class="flex-1">
+                <dt class="text-xs uppercase tracking-wider text-foreground/50" data-i18n="contact.info.address_label">Siège</dt>
+                <dd class="mt-1 font-medium" data-i18n="contact.info.address_value">Bonapriso, Douala — Cameroun</dd>
+              </div>
+            </div>
+            <div class="flex gap-4 items-start py-3">
+              <span class="text-foreground/45 w-6 text-lg">◐</span>
+              <div class="flex-1">
+                <dt class="text-xs uppercase tracking-wider text-foreground/50" data-i18n="contact.info.hours_label">Heures</dt>
+                <dd class="mt-1 font-medium" data-i18n="contact.info.hours_value">Lun. – Ven. · 9h – 18h</dd>
+              </div>
+            </div>
+          </dl>
+        </div>
+
+        <!-- WhatsApp CTA -->
+        <div class="border border-[#25D366]/30 bg-[#25D366]/5 rounded-2xl p-6 reveal elevate" style="--i:3">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-full bg-[#25D366] text-white flex items-center justify-center text-2xl flex-shrink-0">
+              <span aria-hidden="true">✆</span>
+            </div>
+            <div class="flex-1">
+              <h3 class="font-medium text-lg" data-i18n="contact.whatsapp_label">Préférez WhatsApp ?</h3>
+              <p class="text-sm text-foreground/70 mt-1" data-i18n="contact.whatsapp_desc">Réponses généralement plus rapides via messagerie.</p>
+              <a href="https://wa.me/237600000000" target="_blank" rel="noopener noreferrer"
+                 class="inline-flex items-center gap-2 mt-4 px-6 py-2.5 bg-[#25D366] text-white font-medium rounded-xl text-sm hover:bg-[#1ebe5a] transition-colors cursor-pointer">
+                <span data-i18n="contact.whatsapp_button">Discuter sur WhatsApp</span>
+                <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import { t, getLocale } from '../lib/i18n.ts';
+
+    interface ContactMessage {
+      id: string;
+      name: string;
+      email: string;
+      phone: string;
+      message: string;
+      createdAt: string;
+    }
+
+    function safeText(s: string): string {
+      return s.replace(/[<>&"']/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c] || c));
+    }
+
+    function setError(fieldId: string, message: string | null) {
+      const err = document.querySelector(`[data-err-for="${fieldId}"]`) as HTMLElement | null;
+      if (!err) return;
+      if (message) {
+        err.textContent = message;
+        err.classList.remove('hidden');
+      } else {
+        err.textContent = '';
+        err.classList.add('hidden');
+      }
+    }
+
+    function validate(form: HTMLFormElement): { ok: boolean; data?: ContactMessage } {
+      const name = (form.querySelector('#cf-name') as HTMLInputElement).value.trim();
+      const email = (form.querySelector('#cf-email') as HTMLInputElement).value.trim();
+      const phone = (form.querySelector('#cf-phone') as HTMLInputElement).value.trim();
+      const message = (form.querySelector('#cf-message') as HTMLTextAreaElement).value.trim();
+
+      let ok = true;
+      setError('cf-name', null);
+      setError('cf-email', null);
+      setError('cf-message', null);
+
+      if (!name) { setError('cf-name', t('contact.form.validation_required')); ok = false; }
+      if (!email) {
+        setError('cf-email', t('contact.form.validation_required'));
+        ok = false;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setError('cf-email', t('contact.form.validation_email'));
+        ok = false;
+      }
+      if (!message || message.length < 8) { setError('cf-message', t('contact.form.validation_required')); ok = false; }
+
+      if (!ok) return { ok: false };
+
+      return {
+        ok: true,
+        data: {
+          id: 'msg_' + Date.now(),
+          name: safeText(name),
+          email: safeText(email),
+          phone: safeText(phone),
+          message: safeText(message),
+          createdAt: new Date().toISOString()
+        }
+      };
+    }
+
+    function setupForm() {
+      const form = document.getElementById('contact-form') as HTMLFormElement | null;
+      const result = document.getElementById('cf-result');
+      if (!form || !result) return;
+
+      const langInput = form.querySelector('#cf-lang') as HTMLInputElement | null;
+      if (langInput) {
+        langInput.value = getLocale();
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const { ok, data } = validate(form);
+        if (!ok || !data) return;
+
+        const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = t('contact.form.sending') || 'Envoi en cours...';
+        }
+
+        try {
+          const formData = new FormData(form);
+          const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(formData as any).toString(),
+          });
+
+          if (!response.ok) {
+            throw new Error('Server returned ' + response.status);
+          }
+
+          // Save to localStorage as well
+          const existing = JSON.parse(localStorage.getItem('immopro_contact_messages') || '[]');
+          existing.unshift(data);
+          localStorage.setItem('immopro_contact_messages', JSON.stringify(existing));
+
+          result.className = 'mt-6 p-4 rounded-xl text-sm bg-[#0F766E]/10 border border-[#0F766E]/30 text-[#0F766E]';
+          result.textContent = t('contact.form.success');
+          result.classList.remove('hidden');
+          form.reset();
+
+          setTimeout(() => {
+            result.classList.add('hidden');
+          }, 6000);
+        } catch (err) {
+          console.error('Submission error:', err);
+          result.className = 'mt-6 p-4 rounded-xl text-sm bg-destructive/10 border border-destructive/30 text-destructive';
+          result.textContent = t('contact.form.error');
+          result.classList.remove('hidden');
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = t('contact.form.submit') || 'Envoyer le message';
+          }
+        }
+      });
+    }
+
+    document.addEventListener('astro:page-load', setupForm);
+    setupForm();
+  </script>
+</MainLayout>
