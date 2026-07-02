@@ -5,7 +5,7 @@ import vercel from '@astrojs/vercel/serverless';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://immopro.cm',
+  site: 'https://immohome.vercel.app',
 
   // Hybrid: public pages prerender by default; pages/endpoints opt into SSR
   // with `export const prerender = false`. API routes are always on-demand.

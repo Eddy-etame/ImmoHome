@@ -1,5 +1,8 @@
 # robots.txt for ImmoPro
 User-agent: *
 Allow: /
+Disallow: /agent
+Disallow: /atelier
+Disallow: /api/
 
-Sitemap: https://immopro.cm/sitemap-index.xml
+Sitemap: https://immohome.vercel.app/sitemap-index.xml

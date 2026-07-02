@@ -29,6 +29,11 @@ export const translations = {
     'home.engage.price.desc': 'Chaque prix de présentation est audité pour correspondre aux réalités du marché camerounais.',
     'home.engage.support.title': 'Accompagnement',
     'home.engage.support.desc': 'De la signature chez le notaire à l’installation définitive, nous restons à vos côtés.',
+    'home.hero.badge': 'Biens curatés',
+    'home.stats.properties': 'Biens répertoriés',
+    'home.stats.clients': 'Clients satisfaits',
+    'home.stats.recommendation': 'Taux de recommandation',
+    'home.stats.experience': 'Années d’expertise',
 
     // Common
     'common.watch_film': 'Regarder le film d’exception',
@@ -360,6 +365,11 @@ export const translations = {
     'home.engage.price.desc': 'Every listing price is audited against the realities of the Cameroonian market.',
     'home.engage.support.title': 'End-to-end support',
     'home.engage.support.desc': 'From the notary’s signing to final move-in, we stay by your side.',
+    'home.hero.badge': 'Curated properties',
+    'home.stats.properties': 'Properties listed',
+    'home.stats.clients': 'Happy clients',
+    'home.stats.recommendation': 'Recommendation rate',
+    'home.stats.experience': 'Years of expertise',
 
     // Common
     'common.watch_film': 'Watch the cinematic film',

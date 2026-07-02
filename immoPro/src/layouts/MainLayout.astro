@@ -11,6 +11,7 @@ interface Props {
   ogImage?: string;
   ogType?: string;
   lang?: 'fr' | 'en';
+  noindex?: boolean;
 }
 
 const {
@@ -18,7 +19,8 @@ const {
   description = "Découvrez notre sélection exclusive de villas, appartements et terrains d'exception à Douala, Yaoundé et Kribi.",
   ogImage = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
   ogType = "website",
-  lang = "fr"
+  lang = "fr",
+  noindex = false
 } = Astro.props;
 
 const canonicalUrl = Astro.url.href;
@@ -34,6 +36,7 @@ const canonicalUrl = Astro.url.href;
     <title>{title}</title>
     <meta name="title" content={title} />
     <meta name="description" content={description} />
+    <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow"} />
     <link rel="canonical" href={canonicalUrl} />
 
     <!-- Open Graph / Facebook -->
@@ -155,24 +158,34 @@ const canonicalUrl = Astro.url.href;
     function initStatCounters() {
       const stats = document.querySelectorAll('.stat[data-target]');
       if (!stats.length) return;
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      stats.forEach(el => {
-        const htmlEl = el as HTMLElement;
+      const run = (htmlEl: HTMLElement) => {
+        if (htmlEl.dataset.counted === 'true') return;
+        htmlEl.dataset.counted = 'true';
         const target = parseFloat(htmlEl.dataset.target || '0');
         const suffix = htmlEl.dataset.suffix || '';
-        const duration = 1350;
+        if (reduced) { htmlEl.textContent = target.toLocaleString('fr-FR') + suffix; return; }
+        const duration = 1600;
         const start = performance.now();
-
         function animate(now: number) {
           const progress = Math.min((now - start) / duration, 1);
-          const eased = 1 - Math.pow(1 - progress, 3);
+          const eased = 1 - Math.pow(1 - progress, 4);
           const current = Math.floor(target * eased);
           htmlEl.textContent = current.toLocaleString('fr-FR') + suffix;
           if (progress < 1) requestAnimationFrame(animate);
           else htmlEl.textContent = target.toLocaleString('fr-FR') + suffix;
         }
         requestAnimationFrame(() => animate(performance.now()));
-      });
+      };
+
+      // Count up only when each figure scrolls into view.
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) { run(e.target as HTMLElement); io.unobserve(e.target); }
+        });
+      }, { threshold: 0.45 });
+      stats.forEach((el) => io.observe(el));
     }
 
     // === Reveal on scroll ===
@@ -306,7 +319,7 @@ const canonicalUrl = Astro.url.href;
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "ImmoPro",
-        "url": "https://immopro.cm",
+        "url": "https://immohome.vercel.app",
         "logo": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
         "description": "Premium real estate in Cameroon. Curated villas, apartments and land.",
         "address": {
