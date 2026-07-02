@@ -170,9 +170,33 @@ const similar: PropertyView[] = pickSimilar(property, all, 3);
             )}
           </div>
 
-          <button id="book-visit-btn" class="w-full py-4 bg-foreground text-background font-medium rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer active:scale-[0.985]" data-i18n="property.book_visit">
+          <button id="book-visit-btn" class="shimmer w-full py-4 bg-foreground text-background font-medium rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer active:scale-[0.985]" data-i18n="property.book_visit">
             Réserver une visite privée
           </button>
+
+          <dialog id="dlg-book" class="book-dialog">
+            <form id="form-book" method="dialog" class="p-8">
+              <div class="text-[11px] uppercase tracking-[0.22em] text-foreground/50 mb-2" data-i18n="property.book_tag">Visite privée</div>
+              <h2 class="serif text-2xl tracking-tight mb-1">{property.title}</h2>
+              <p class="text-sm text-foreground/60 mb-6" data-i18n="property.book_note">Nous vous recontactons sous 24h ouvrées pour convenir d'un créneau.</p>
+              <div class="space-y-3">
+                <input id="book-name" type="text" required placeholder="Nom complet" data-i18n-placeholder="contact.form.name"
+                       class="w-full border border-border px-4 py-3 rounded-xl text-sm bg-background focus:outline-none focus:border-foreground transition-colors" />
+                <input id="book-email" type="email" required placeholder="Email" data-i18n-placeholder="contact.form.email"
+                       class="w-full border border-border px-4 py-3 rounded-xl text-sm bg-background focus:outline-none focus:border-foreground transition-colors" />
+                <input id="book-phone" type="tel" placeholder="+237 6 XX XX XX XX" data-i18n-placeholder="contact.form.phone_placeholder"
+                       class="w-full border border-border px-4 py-3 rounded-xl text-sm bg-background focus:outline-none focus:border-foreground transition-colors" />
+              </div>
+              <p id="book-error" class="text-xs text-destructive mt-3 hidden" data-i18n="contact.form.error">Une erreur est survenue.</p>
+              <div class="flex gap-3 mt-6">
+                <button type="button" id="book-cancel" class="flex-1 py-3 border border-border rounded-xl text-sm tracking-widest hover:border-foreground transition-colors cursor-pointer" data-i18n="agent.modal.cancel">Annuler</button>
+                <button type="submit" class="flex-1 py-3 bg-foreground text-background rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer" data-i18n="property.book_submit">Demander</button>
+              </div>
+            </form>
+          </dialog>
+          <div id="book-success" class="hidden mt-3 p-4 rounded-xl text-sm bg-[#0F766E]/10 border border-[#0F766E]/30 text-[#0F766E]" data-i18n="property.book_success">
+            Demande envoyée. Nous vous recontactons très vite.
+          </div>
         </div>
       </div>
     </div>
@@ -205,7 +229,21 @@ const similar: PropertyView[] = pickSimilar(property, all, 3);
     )}
   </div>
 
+  <style>
+    .book-dialog {
+      border: 1px solid var(--border); background: var(--background); color: var(--foreground);
+      padding: 0; border-radius: 1.25rem; max-width: 460px; width: calc(100% - 2rem);
+      box-shadow: 0 32px 64px -12px rgb(0 0 0 / 0.28);
+    }
+    .book-dialog::backdrop { background: rgb(0 0 0 / 0.6); backdrop-filter: blur(3px); }
+    .book-dialog[open] { animation: book-pop 260ms cubic-bezier(0.22, 1, 0.36, 1); }
+    @keyframes book-pop { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .book-dialog[open] { animation: none; } }
+  </style>
+
   <script>
+    import { supabase } from '../../lib/supabase/client.ts';
+
     // Custom i18n Toggler for Dynamic Field Content
     function updateCustomi18n() {
       const locale = localStorage.getItem('immopro_locale') || 'fr';
@@ -252,12 +290,39 @@ const similar: PropertyView[] = pickSimilar(property, all, 3);
 
     function setupBookingButton() {
       const btn = document.getElementById('book-visit-btn');
-      btn?.addEventListener('click', () => {
+      const dlg = document.getElementById('dlg-book') as HTMLDialogElement | null;
+      const form = document.getElementById('form-book') as HTMLFormElement | null;
+      const cancel = document.getElementById('book-cancel');
+      const errEl = document.getElementById('book-error');
+      const okEl = document.getElementById('book-success');
+      if (!btn || !dlg || !form) return;
+
+      const propTitle = document.querySelector('h1')?.textContent?.trim() || '';
+
+      btn.addEventListener('click', () => {
+        errEl?.classList.add('hidden');
+        if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+      });
+      cancel?.addEventListener('click', () => dlg.close());
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = (document.getElementById('book-name') as HTMLInputElement).value.trim();
+        const email = (document.getElementById('book-email') as HTMLInputElement).value.trim();
+        const phone = (document.getElementById('book-phone') as HTMLInputElement).value.trim();
+        if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl?.classList.remove('hidden'); return; }
+
         const locale = localStorage.getItem('immopro_locale') || 'fr';
-        const msg = locale === 'en'
-          ? 'Booking form to be integrated (Phase 5 - Agent area).'
-          : 'Formulaire de réservation à intégrer (Phase 5 - Espace Agent).';
-        alert(msg);
+        const { error } = await supabase.from('leads').insert({
+          name, email, phone: phone || null,
+          message: `[${locale === 'fr' ? 'Demande de visite' : 'Visit request'}] ${propTitle}`,
+          locale
+        });
+        if (error) { errEl?.classList.remove('hidden'); return; }
+        dlg.close();
+        form.reset();
+        okEl?.classList.remove('hidden');
+        setTimeout(() => okEl?.classList.add('hidden'), 6000);
       });
     }
 

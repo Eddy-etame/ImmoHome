@@ -10,26 +10,32 @@ import MainLayout from '../layouts/MainLayout.astro';
 
   <script>
     import { getFavorites, removeFavorite } from '../lib/favorites.ts';
+    import { t } from '../lib/i18n.ts';
+
+    function safe(s: any): string {
+      if (s === undefined || s === null) return '';
+      return String(s).replace(/[<>&"']/g, (c) => (({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' } as any)[c] || c));
+    }
 
     function renderFavorites() {
       const container = document.getElementById('fav-grid');
       if (!container) return;
       const favs = getFavorites();
-      
+
       if (favs.length === 0) {
-        container.innerHTML = `<p class="text-foreground/60" data-i18n="favorites.empty">Aucun bien en favori pour le moment.</p>`;
+        container.innerHTML = `<p class="text-foreground/60" data-i18n="favorites.empty">${t('favorites.empty')}</p>`;
         return;
       }
-      
+
       container.innerHTML = favs.map(p => `
-        <div class="border border-border rounded-2xl overflow-hidden">
-          <img src="${p.image}" class="w-full aspect-video object-cover" />
+        <div class="border border-border rounded-2xl overflow-hidden elevate">
+          <img src="${safe(p.image)}" alt="${safe(p.title)}" loading="lazy" class="w-full aspect-video object-cover" />
           <div class="p-5">
-            <h3 class="serif text-xl">${p.title}</h3>
-            <p class="text-sm text-foreground/60 mt-1">${p.city} · ${p.surface} m²</p>
+            <h3 class="serif text-xl">${safe(p.title)}</h3>
+            <p class="text-sm text-foreground/60 mt-1">${safe(p.city)} · ${safe(p.surface)} m²</p>
             <div class="mt-4 flex justify-between items-center">
-              <a href="/properties/${p.id}" class="text-sm text-[#0F766E]">Voir</a>
-              <button data-remove-fav="${p.id}" class="text-xs text-destructive hover:underline cursor-pointer">Retirer</button>
+              <a href="/properties/${safe(p.id)}" class="text-sm text-[#0F766E] ink-link">${t('property.breadcrumb_home') === 'Home' ? 'View' : 'Voir'}</a>
+              <button data-remove-fav="${safe(p.id)}" class="text-xs text-destructive hover:underline cursor-pointer">${t('property.breadcrumb_home') === 'Home' ? 'Remove' : 'Retirer'}</button>
             </div>
           </div>
         </div>

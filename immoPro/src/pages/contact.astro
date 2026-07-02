@@ -1,6 +1,5 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
-const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://logiciel-formulaire.vercel.app';
 ---
 
 <MainLayout title="Contact • ImmoPro" description="Contactez ImmoPro pour vos projets immobiliers d'exception au Cameroun. Douala · Yaoundé · Kribi.">
@@ -22,7 +21,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://logiciel-formulaire.ve
         <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2" data-i18n="contact.form.tag">Formulaire</div>
         <p class="text-sm text-foreground/60 mb-8" data-i18n="contact.form.intro">Réponse sous 24h ouvrées. Confidentialité garantie.</p>
 
-        <form id="contact-form" action={`${apiUrl}/api/submit/0e2ee02e-3e55-40db-952c-d54edea2a425`} method="POST" class="space-y-5" novalidate>
+        <form id="contact-form" class="space-y-5" novalidate>
           <div>
             <input type="text" name="_gotcha" style="display:none" tabindex="-1" />
             <input type="hidden" name="_lang" id="cf-lang" value="fr" />
@@ -129,6 +128,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://logiciel-formulaire.ve
 
   <script>
     import { t, getLocale } from '../lib/i18n.ts';
+    import { supabase } from '../lib/supabase/client.ts';
 
     interface ContactMessage {
       id: string;
@@ -137,10 +137,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://logiciel-formulaire.ve
       phone: string;
       message: string;
       createdAt: string;
-    }
-
-    function safeText(s: string): string {
-      return s.replace(/[<>&"']/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c] || c));
     }
 
     function setError(fieldId: string, message: string | null) {
@@ -178,14 +174,15 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://logiciel-formulaire.ve
 
       if (!ok) return { ok: false };
 
+      // Store raw values; escaping happens at render time (dashboard escapes).
       return {
         ok: true,
         data: {
           id: 'msg_' + Date.now(),
-          name: safeText(name),
-          email: safeText(email),
-          phone: safeText(phone),
-          message: safeText(message),
+          name,
+          email,
+          phone,
+          message,
           createdAt: new Date().toISOString()
         }
       };
@@ -213,23 +210,14 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://logiciel-formulaire.ve
         }
 
         try {
-          const formData = new FormData(form);
-          const response = await fetch(form.action, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams(formData as any).toString(),
+          const { error } = await supabase.from('leads').insert({
+            name: data.name,
+            email: data.email,
+            phone: data.phone || null,
+            message: data.message,
+            locale: getLocale()
           });
-
-          if (!response.ok) {
-            throw new Error('Server returned ' + response.status);
-          }
-
-          // Save to localStorage as well
-          const existing = JSON.parse(localStorage.getItem('immopro_contact_messages') || '[]');
-          existing.unshift(data);
-          localStorage.setItem('immopro_contact_messages', JSON.stringify(existing));
+          if (error) throw new Error(error.message);
 
           result.className = 'mt-6 p-4 rounded-xl text-sm bg-[#0F766E]/10 border border-[#0F766E]/30 text-[#0F766E]';
           result.textContent = t('contact.form.success');

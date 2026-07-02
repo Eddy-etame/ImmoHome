@@ -288,7 +288,8 @@ const favData = featured.map((p) => ({
 
   <script>
     import { toggleFavorite, isFavorited } from '../lib/favorites.ts';
-    import { t } from '../lib/i18n.ts';
+    import { t, getLocale } from '../lib/i18n.ts';
+    import { supabase } from '../lib/supabase/client.ts';
 
     function favMap(): Record<string, any> {
       const el = document.getElementById('fav-data');
@@ -336,16 +337,18 @@ const favData = featured.map((p) => ({
           return;
         }
 
-        const subs: string[] = JSON.parse(localStorage.getItem('immopro_subscribers') || '[]');
-        if (!subs.includes(email)) {
-          subs.push(email);
-          localStorage.setItem('immopro_subscribers', JSON.stringify(subs));
-        }
-
-        msg.className = 'mt-4 text-sm text-[#0F766E]';
-        msg.textContent = t('home.subscribe.success');
-        input.value = '';
-        setTimeout(() => msg.classList.add('hidden'), 6000);
+        supabase.from('subscribers').insert({ email, locale: getLocale() }).then(({ error }) => {
+          // Unique-violation (already subscribed) still counts as success for the visitor.
+          if (error && error.code !== '23505') {
+            msg.className = 'mt-4 text-sm text-destructive';
+            msg.textContent = t('home.subscribe.invalid');
+            return;
+          }
+          msg.className = 'mt-4 text-sm text-[#0F766E]';
+          msg.textContent = t('home.subscribe.success');
+          input.value = '';
+          setTimeout(() => msg.classList.add('hidden'), 6000);
+        });
       });
     }
 
