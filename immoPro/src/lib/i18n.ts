@@ -221,6 +221,7 @@ export const translations = {
 
     // Favorites
     'favorites.empty': 'Aucun bien en favori pour le moment.',
+    'favorites.tag': 'Votre sélection',
 
     // About
     'about.title': 'Une maison. Pas une agence.',
@@ -560,6 +561,7 @@ export const translations = {
 
     // Favorites
     'favorites.empty': 'No favorite properties at the moment.',
+    'favorites.tag': 'Your selection',
 
     // About
     'about.title': 'A home. Not an agency.',

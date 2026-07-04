@@ -5,11 +5,6 @@ import MainLayout from '../layouts/MainLayout.astro';
 import { getPublishedProperties, type PropertyView } from '../lib/queries.ts';
 
 const properties: PropertyView[] = await getPublishedProperties();
-
-// Trimmed payload for the client-side favorites store (kept small on purpose).
-const favData = properties.map((p) => ({
-  id: p.id, title: p.title, city: p.city, surface: p.surface, image: p.image, price: p.price
-}));
 ---
 
 <MainLayout title="Nos biens d’exception • ImmoPro" description="Parcourez notre sélection de villas, appartements et terrains d'exception à Douala, Yaoundé et Kribi. Recherche et filtres par prix, ville et type.">
@@ -48,7 +43,7 @@ const favData = properties.map((p) => ({
               </div>
             </div>
           </a>
-          <button data-heart={p.id} class="heart absolute top-3.5 right-3.5 w-9 h-9 grid place-items-center rounded-full bg-black/25 backdrop-blur border border-white/15 text-lg text-white cursor-pointer transition hover:bg-black/45 hover:scale-110 active:scale-95" aria-label="Ajouter aux favoris" data-i18n-aria="card.favorite">♡</button>
+          <button data-heart={p.uid} class="heart absolute top-3.5 right-3.5 w-9 h-9 grid place-items-center rounded-full bg-black/25 backdrop-blur border border-white/15 text-lg text-white cursor-pointer transition hover:bg-black/45 hover:scale-110 active:scale-95" aria-label="Ajouter aux favoris" data-i18n-aria="card.favorite">♡</button>
           <div class="flex items-baseline justify-between mt-4 px-1">
             <div class="text-lg font-medium tracking-tight">{new Intl.NumberFormat('fr-FR').format(p.price)} <span class="text-xs font-normal text-foreground/50">FCFA</span></div>
             <a href={`/properties/${p.id}`} class="text-[11px] uppercase tracking-[0.15em] text-foreground/55 group-hover:text-[#0F766E] transition-colors inline-flex items-center gap-1.5"><span data-i18n="card.view">Voir le bien</span> <span class="card-arrow">→</span></a>
@@ -58,20 +53,10 @@ const favData = properties.map((p) => ({
     </div>
 
     <p id="no-results" class="hidden text-foreground/60 mt-10 text-center" data-i18n="properties.no_results">Aucun bien ne correspond à votre recherche.</p>
-
-    <script type="application/json" id="fav-data" set:html={JSON.stringify(favData)}></script>
   </div>
 
   <script>
-    import { toggleFavorite, isFavorited } from '../lib/favorites.ts';
-
-    function favMap(): Record<string, any> {
-      const el = document.getElementById('fav-data');
-      if (!el) return {};
-      try {
-        return (JSON.parse(el.textContent || '[]') as any[]).reduce((m, p) => { m[p.id] = p; return m; }, {} as Record<string, any>);
-      } catch { return {}; }
-    }
+    // Favorite hearts are wired globally by AuthModal (DB-backed, auth-gated).
 
     function applyFilter() {
       const search = document.getElementById('search') as HTMLInputElement | null;
@@ -99,25 +84,9 @@ const favData = properties.map((p) => ({
       noResults?.classList.toggle('hidden', visible > 0);
     }
 
-    function initHearts() {
-      const map = favMap();
-      document.querySelectorAll('[data-heart]').forEach((btn) => {
-        const id = btn.getAttribute('data-heart');
-        if (!id) return;
-        btn.textContent = isFavorited(id) ? '♥' : '♡';
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const prop = map[id];
-          if (prop) btn.textContent = toggleFavorite(prop) ? '♥' : '♡';
-        });
-      });
-    }
-
     function init() {
       document.getElementById('search')?.addEventListener('input', applyFilter);
       document.getElementById('price-filter')?.addEventListener('change', applyFilter);
-      initHearts();
       applyFilter();
     }
 

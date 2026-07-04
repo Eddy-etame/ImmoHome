@@ -2,60 +2,86 @@
 import MainLayout from '../layouts/MainLayout.astro';
 ---
 
-<MainLayout title="Favoris • ImmoPro">
-  <div class="max-w-6xl mx-auto px-5 py-10">
-    <h1 class="serif text-4xl tracking-tight mb-8" data-i18n="nav.favorites">Mes favoris</h1>
-    <div id="fav-grid" class="grid md:grid-cols-3 gap-8"></div>
+<MainLayout title="Mes favoris • ImmoPro" noindex={true}>
+  <div class="max-w-6xl mx-auto px-5 py-12 min-h-[62vh]">
+    <div class="mb-8">
+      <div class="text-[11px] uppercase tracking-[0.2em] text-foreground/50 mb-2" data-i18n="favorites.tag">Votre sélection</div>
+      <h1 class="serif text-4xl md:text-5xl tracking-tight" data-i18n="nav.favorites">Mes favoris</h1>
+    </div>
+    <div id="fav-state"></div>
+    <div id="fav-grid" class="grid sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
   </div>
 
   <script>
-    import { getFavorites, removeFavorite } from '../lib/favorites.ts';
-    import { t } from '../lib/i18n.ts';
+    import { getFavoriteProperties, toggleFavorite } from '../lib/favorites';
 
-    function safe(s: any): string {
-      if (s === undefined || s === null) return '';
-      return String(s).replace(/[<>&"']/g, (c) => (({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' } as any)[c] || c));
+    const isEn = () => (localStorage.getItem('immopro_locale') || 'fr') === 'en';
+    function safe(s: unknown): string {
+      if (s == null) return '';
+      return String(s).replace(/[<>&"']/g, (c) => (({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' } as Record<string, string>)[c] || c));
     }
+    const fmt = (n: number) => new Intl.NumberFormat('fr-FR').format(n || 0);
 
-    function renderFavorites() {
-      const container = document.getElementById('fav-grid');
-      if (!container) return;
-      const favs = getFavorites();
+    async function render() {
+      const grid = document.getElementById('fav-grid');
+      const state = document.getElementById('fav-state');
+      if (!grid || !state) return;
+      const en = isEn();
 
-      if (favs.length === 0) {
-        container.innerHTML = `<p class="text-foreground/60" data-i18n="favorites.empty">${t('favorites.empty')}</p>`;
+      const favs = await getFavoriteProperties();
+
+      if (favs === null) {
+        grid.innerHTML = '';
+        state.innerHTML = `
+          <div class="border border-border rounded-2xl bg-card/40 p-10 md:p-14 text-center max-w-xl mx-auto">
+            <p class="text-foreground/70 mb-6">${en ? 'Sign in to view and save your favorite properties.' : 'Connectez-vous pour retrouver et enregistrer vos biens favoris.'}</p>
+            <button id="fav-signin" class="px-7 py-3 bg-foreground text-background rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer">${en ? 'Sign in' : 'Se connecter'}</button>
+          </div>`;
+        document.getElementById('fav-signin')?.addEventListener('click', () => (window as unknown as { immoproOpenAuth?: () => void }).immoproOpenAuth?.());
         return;
       }
 
-      container.innerHTML = favs.map(p => `
-        <div class="border border-border rounded-2xl overflow-hidden elevate">
-          <img src="${safe(p.image)}" alt="${safe(p.title)}" loading="lazy" class="w-full aspect-video object-cover" />
-          <div class="p-5">
-            <h3 class="serif text-xl">${safe(p.title)}</h3>
-            <p class="text-sm text-foreground/60 mt-1">${safe(p.city)} · ${safe(p.surface)} m²</p>
-            <div class="mt-4 flex justify-between items-center">
-              <a href="/properties/${safe(p.id)}" class="text-sm text-[#0F766E] ink-link">${t('property.breadcrumb_home') === 'Home' ? 'View' : 'Voir'}</a>
-              <button data-remove-fav="${safe(p.id)}" class="text-xs text-destructive hover:underline cursor-pointer">${t('property.breadcrumb_home') === 'Home' ? 'Remove' : 'Retirer'}</button>
-            </div>
-          </div>
-        </div>
-      `).join('');
+      if (favs.length === 0) {
+        grid.innerHTML = '';
+        state.innerHTML = `<p class="text-foreground/60">${en ? 'No favorites yet. Tap the heart on any property to save it here.' : 'Aucun favori pour le moment. Touchez le cœur sur un bien pour l’enregistrer ici.'}</p>`;
+        return;
+      }
 
-      // Attach click listeners to all Retirer buttons
-      container.querySelectorAll('[data-remove-fav]').forEach(btn => {
-        const id = btn.getAttribute('data-remove-fav');
-        btn.addEventListener('click', (e) => {
+      state.innerHTML = '';
+      grid.innerHTML = favs.map((p) => `
+        <div class="property-card group relative">
+          <a href="/properties/${safe(p.id)}" class="block">
+            <div class="pc-media relative aspect-[4/3] overflow-hidden rounded-2xl bg-secondary">
+              <img src="${safe(p.image)}" alt="${safe(en ? p.titleEn : p.title)}" loading="lazy" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] group-hover:scale-[1.06]" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent"></div>
+              <div class="absolute bottom-4 left-4 right-4 text-white">
+                <h3 class="serif text-2xl leading-tight">${safe(en ? p.titleEn : p.title)}</h3>
+                <p class="text-xs text-white/85 mt-1">${safe(p.city)} · ${safe(p.surface)} m²</p>
+              </div>
+            </div>
+          </a>
+          <button data-remove="${safe(p.uid)}" class="absolute top-3.5 right-3.5 w-9 h-9 grid place-items-center rounded-full bg-black/30 backdrop-blur border border-white/15 text-lg text-white cursor-pointer transition hover:bg-destructive/70 hover:scale-110 active:scale-95" aria-label="${en ? 'Remove from favorites' : 'Retirer des favoris'}">♥</button>
+          <div class="flex items-baseline justify-between mt-4 px-1">
+            <div class="text-lg font-medium tracking-tight">${fmt(p.price)} <span class="text-xs font-normal text-foreground/50">FCFA</span></div>
+            <a href="/properties/${safe(p.id)}" class="text-[11px] uppercase tracking-[0.15em] text-foreground/55 group-hover:text-[#0F766E] transition-colors">${en ? 'View property →' : 'Voir le bien →'}</a>
+          </div>
+        </div>`).join('');
+
+      grid.querySelectorAll('[data-remove]').forEach((btn) => {
+        btn.addEventListener('click', async (e) => {
           e.preventDefault();
-          if (id) {
-            removeFavorite(id);
-            renderFavorites();
-          }
+          const uid = btn.getAttribute('data-remove');
+          if (!uid) return;
+          await toggleFavorite(uid);
+          render();
         });
       });
     }
 
-    // Support soft-navigation from ViewTransitions
-    document.addEventListener('astro:page-load', renderFavorites);
-    renderFavorites();
+    document.addEventListener('astro:page-load', render);
+    window.addEventListener('immopro:auth-changed', render);
+    window.addEventListener('immopro:locale-changed', render);
+    window.addEventListener('favorites-updated', render);
+    render();
   </script>
 </MainLayout>

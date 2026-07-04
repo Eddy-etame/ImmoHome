@@ -5,11 +5,6 @@ import MainLayout from '../layouts/MainLayout.astro';
 import { getFeaturedProperties } from '../lib/queries.ts';
 
 const featured = await getFeaturedProperties(3);
-
-// Trimmed payload for the client-side favorites store.
-const favData = featured.map((p) => ({
-  id: p.id, title: p.title, city: p.city, surface: p.surface, image: p.image, price: p.price
-}));
 ---
 
 <MainLayout>
@@ -80,7 +75,7 @@ const favData = featured.map((p) => ({
               </div>
             </div>
           </a>
-          <button data-heart={p.id} class="heart absolute top-3.5 right-3.5 w-9 h-9 grid place-items-center rounded-full bg-black/25 backdrop-blur border border-white/15 text-lg text-white cursor-pointer transition hover:bg-black/45 hover:scale-110 active:scale-95" aria-label="Ajouter aux favoris" data-i18n-aria="card.favorite">♡</button>
+          <button data-heart={p.uid} class="heart absolute top-3.5 right-3.5 w-9 h-9 grid place-items-center rounded-full bg-black/25 backdrop-blur border border-white/15 text-lg text-white cursor-pointer transition hover:bg-black/45 hover:scale-110 active:scale-95" aria-label="Ajouter aux favoris" data-i18n-aria="card.favorite">♡</button>
           <div class="flex items-baseline justify-between mt-4 px-1">
             <div class="text-lg font-medium tracking-tight">{new Intl.NumberFormat('fr-FR').format(p.price)} <span class="text-xs font-normal text-foreground/50">FCFA</span></div>
             <a href={`/properties/${p.id}`} class="text-[11px] uppercase tracking-[0.15em] text-foreground/55 group-hover:text-[#0F766E] transition-colors inline-flex items-center gap-1.5"><span data-i18n="card.view">Voir le bien</span> <span class="card-arrow">→</span></a>
@@ -90,7 +85,6 @@ const favData = featured.map((p) => ({
     </div>
   </section>
 
-  <script type="application/json" id="fav-data" set:html={JSON.stringify(favData)}></script>
 
   <!-- Stats Section -->
   <section class="border-t border-border py-16 bg-background">
@@ -298,37 +292,10 @@ const favData = featured.map((p) => ({
   </section>
 
   <script>
-    import { toggleFavorite, isFavorited } from '../lib/favorites.ts';
     import { t, getLocale } from '../lib/i18n.ts';
     import { supabase } from '../lib/supabase/client.ts';
 
-    function favMap(): Record<string, any> {
-      const el = document.getElementById('fav-data');
-      if (!el) return {};
-      try {
-        return (JSON.parse(el.textContent || '[]') as any[]).reduce((m, p) => { m[p.id] = p; return m; }, {} as Record<string, any>);
-      } catch { return {}; }
-    }
-
-    function initFavorites() {
-      const map = favMap();
-      document.querySelectorAll('[data-heart]').forEach(btn => {
-        const id = btn.getAttribute('data-heart');
-        if (!id) return;
-
-        btn.textContent = isFavorited(id) ? '♥' : '♡';
-
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const prop = map[id];
-          if (prop) {
-            const added = toggleFavorite(prop);
-            btn.textContent = added ? '♥' : '♡';
-          }
-        });
-      });
-    }
+    // Favorite hearts are wired globally by AuthModal (DB-backed, auth-gated).
 
     function setupSubscribe() {
       const form = document.getElementById('sub-form') as HTMLFormElement | null;
@@ -379,11 +346,9 @@ const favData = featured.map((p) => ({
     }
 
     document.addEventListener('astro:page-load', () => {
-      initFavorites();
       setupSubscribe();
       setupParallax();
     });
-    initFavorites();
     setupSubscribe();
     setupParallax();
   </script>

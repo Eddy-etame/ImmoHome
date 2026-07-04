@@ -17,6 +17,7 @@ const sb = createClient<Database>(SUPABASE_URL, SUPABASE_ANON, { auth: { persist
 /** UI-facing property shape (camelCase), decoupled from DB column names. */
 export interface PropertyView {
   id: string;            // slug — used in URLs
+  uid: string;           // database uuid — used for relations (favorites)
   title: string;
   titleEn: string;
   city: string;
@@ -42,7 +43,7 @@ type PropertyRow = Database['public']['Tables']['properties']['Row'] & {
   property_images?: { url: string; sort_order: number }[] | null;
 };
 
-function toView(row: PropertyRow): PropertyView {
+export function toView(row: PropertyRow): PropertyView {
   const galleryFromJoin = (row.property_images ?? [])
     .slice()
     .sort((a, b) => a.sort_order - b.sort_order)
@@ -55,6 +56,7 @@ function toView(row: PropertyRow): PropertyView {
 
   return {
     id: row.slug ?? row.id,
+    uid: row.id,
     title: row.title,
     titleEn: row.title_en ?? row.title,
     city: row.city,

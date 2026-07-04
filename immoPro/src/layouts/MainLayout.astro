@@ -2,6 +2,7 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import BrandPreface from '../components/BrandPreface.astro';
+import AuthModal from '../components/AuthModal.astro';
 import { ViewTransitions } from 'astro:transitions';
 import '../styles/global.css';
 
@@ -334,7 +335,7 @@ const canonicalUrl = Astro.url.href;
     });
 
     // Language toggle support
-    document.addEventListener('immopro:locale-changed', () => {
+    window.addEventListener('immopro:locale-changed', () => {
       document.querySelectorAll('[data-kinetic]').forEach(el => {
         const htmlEl = el as HTMLElement;
         delete htmlEl.dataset.kineticDone;
@@ -366,5 +367,6 @@ const canonicalUrl = Astro.url.href;
       <slot />
     </main>
     <Footer />
+    <AuthModal />
   </body>
 </html>

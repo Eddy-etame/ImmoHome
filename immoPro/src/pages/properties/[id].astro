@@ -257,7 +257,7 @@ const similar: PropertyView[] = pickSimilar(property, all, 3);
       }
     }
 
-    document.addEventListener('immopro:locale-changed', updateCustomi18n);
+    window.addEventListener('immopro:locale-changed', updateCustomi18n);
     document.addEventListener('astro:page-load', () => {
       updateCustomi18n();
       setupFilmButtons();
