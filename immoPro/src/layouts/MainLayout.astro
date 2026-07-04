@@ -248,6 +248,14 @@ const canonicalUrl = Astro.url.href;
         }
       });
 
+      // Dynamic bilingual content (property titles, DB copy) — the two strings
+      // are rendered as data-fr/data-en and swapped by locale.
+      document.querySelectorAll('[data-fr]').forEach(el => {
+        const htmlEl = el as HTMLElement;
+        const val = locale === 'en' ? htmlEl.dataset.en : htmlEl.dataset.fr;
+        if (val != null) htmlEl.textContent = val;
+      });
+
       // Translatable placeholder attributes (inputs / textareas)
       document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const htmlEl = el as HTMLInputElement | HTMLTextAreaElement;

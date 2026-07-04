@@ -55,7 +55,7 @@ const similar: PropertyView[] = pickSimilar(property, all, 3);
 
     <!-- Title and Location -->
     <div class="mb-8">
-      <h1 data-kinetic="letters" class="serif text-5xl tracking-tight mb-2">{property.title}</h1>
+      <h1 data-kinetic="letters" class="serif text-5xl tracking-tight mb-2" data-fr={property.title} data-en={property.titleEn}>{property.title}</h1>
       <p class="text-foreground/60 text-lg flex items-center gap-2">
         <span>📍 {property.city}, <span data-i18n="property.country">Cameroun</span></span> · 
         <span>📐 {property.surface} m²</span>
@@ -177,7 +177,7 @@ const similar: PropertyView[] = pickSimilar(property, all, 3);
           <dialog id="dlg-book" class="book-dialog">
             <form id="form-book" method="dialog" class="p-8">
               <div class="text-[11px] uppercase tracking-[0.22em] text-foreground/50 mb-2" data-i18n="property.book_tag">Visite privée</div>
-              <h2 class="serif text-2xl tracking-tight mb-1">{property.title}</h2>
+              <h2 class="serif text-2xl tracking-tight mb-1" data-fr={property.title} data-en={property.titleEn}>{property.title}</h2>
               <p class="text-sm text-foreground/60 mb-6" data-i18n="property.book_note">Nous vous recontactons sous 24h ouvrées pour convenir d'un créneau.</p>
               <div class="space-y-3">
                 <input id="book-name" type="text" required placeholder="Nom complet" data-i18n-placeholder="contact.form.name"
