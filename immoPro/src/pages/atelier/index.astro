@@ -3,6 +3,7 @@ export const prerender = false;
 
 import MainLayout from '../../layouts/MainLayout.astro';
 import { createSupabaseServerClient } from '../../lib/supabase/server.ts';
+import { ATELIER_COOKIE, needsPassphrase } from '../../lib/atelierGate.ts';
 
 // Owner-only console. Enforced on the server against the Supabase session.
 const supabase = createSupabaseServerClient({ request: Astro.request, cookies: Astro.cookies });
@@ -23,6 +24,10 @@ if (user) {
     displayName = profile.full_name || profile.email || user.email || '';
   }
 }
+
+// Second factor: a shared passphrase (only enforced if ATELIER_PASSPHRASE is set).
+let needPassphrase = false;
+if (isOwner) needPassphrase = await needsPassphrase(Astro.cookies.get(ATELIER_COOKIE)?.value);
 ---
 
 <MainLayout title="Console propriétaire · ImmoPro" noindex={true}>
@@ -44,6 +49,22 @@ if (user) {
           <p id="owner-error" class="text-xs text-destructive hidden">Identifiants incorrects ou accès non autorisé.</p>
           <button type="submit" class="w-full py-3 bg-foreground text-background font-medium rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer active:scale-[0.99]">
             Se connecter
+          </button>
+        </form>
+      </div>
+    </div>
+  ) : needPassphrase ? (
+    <div class="min-h-[62vh] flex items-center justify-center px-5">
+      <div class="max-w-sm w-full aura-glow">
+        <div class="text-[11px] uppercase tracking-[0.25em] text-foreground/45 mb-3">Vérification supplémentaire</div>
+        <h1 class="serif text-3xl md:text-4xl tracking-tight mb-3">Déverrouiller la console</h1>
+        <p class="text-sm text-foreground/60 mb-6">Cette console requiert une phrase secrète en plus de votre connexion.</p>
+        <form id="atelier-pass-form" novalidate class="space-y-3">
+          <input id="atelier-pass" type="password" required autocomplete="off" placeholder="Phrase secrète"
+                 class="w-full border border-border px-4 py-3 rounded-xl text-sm bg-background focus:outline-none focus:border-foreground transition-colors" />
+          <p id="atelier-pass-error" class="text-xs text-destructive hidden">Phrase incorrecte.</p>
+          <button type="submit" class="w-full py-3 bg-foreground text-background font-medium rounded-xl text-sm tracking-widest hover:bg-foreground/90 transition-colors cursor-pointer active:scale-[0.99]">
+            Déverrouiller
           </button>
         </form>
       </div>
@@ -123,6 +144,24 @@ if (user) {
 
   <script>
     import { supabase } from '../../lib/supabase/client.ts';
+
+    // ---- Passphrase gate (second factor, when enabled) ----
+    const passForm = document.getElementById('atelier-pass-form') as HTMLFormElement | null;
+    if (passForm) {
+      passForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pass = (document.getElementById('atelier-pass') as HTMLInputElement).value;
+        const err = document.getElementById('atelier-pass-error');
+        err?.classList.add('hidden');
+        const res = await fetch('/api/atelier-unlock', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passphrase: pass })
+        });
+        if (res.ok) { window.location.reload(); return; }
+        err?.classList.remove('hidden');
+      });
+    }
 
     // ---- Owner login (shown when not an owner) ----
     const loginForm = document.getElementById('owner-login') as HTMLFormElement | null;
