@@ -65,27 +65,38 @@ const similar: PropertyView[] = pickSimilar(property, all, 3);
 
     <!-- Main Image Gallery (Bento inspired) -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
-      <div class="md:col-span-2 aspect-[4/3] rounded-3xl overflow-hidden bg-card">
-        <img src={property.images[0] || property.image} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" alt="Main View" />
-      </div>
+      <button type="button" data-lb="0" class="group/lb md:col-span-2 aspect-[4/3] rounded-3xl overflow-hidden bg-card cursor-zoom-in">
+        <img src={property.images[0] || property.image} loading="eager" class="w-full h-full object-cover transition-transform duration-500 group-hover/lb:scale-105" alt={property.title} />
+      </button>
       <div class="grid grid-cols-2 md:grid-cols-1 md:col-span-2 gap-4">
-        <div class="aspect-[16/10] rounded-3xl overflow-hidden bg-card">
-          <img src={property.images[1] || property.image} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" alt="Interior View" />
-        </div>
+        <button type="button" data-lb="1" class="group/lb aspect-[16/10] rounded-3xl overflow-hidden bg-card cursor-zoom-in">
+          <img src={property.images[1] || property.image} loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover/lb:scale-105" alt={property.title} />
+        </button>
         <div class="grid grid-cols-2 gap-4">
-          <div class="aspect-square rounded-3xl overflow-hidden bg-card">
-            <img src={property.images[2] || property.image} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" alt="Interior view" />
-          </div>
-          <div class="aspect-square rounded-3xl overflow-hidden bg-card relative">
-            <img src={property.images[3] || property.image || property.images[0]} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" alt="Detail view" />
+          <button type="button" data-lb="2" class="group/lb aspect-square rounded-3xl overflow-hidden bg-card cursor-zoom-in">
+            <img src={property.images[2] || property.image} loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover/lb:scale-105" alt={property.title} />
+          </button>
+          <button type="button" data-lb="3" class="group/lb aspect-square rounded-3xl overflow-hidden bg-card relative cursor-zoom-in">
+            <img src={property.images[3] || property.image || property.images[0]} loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover/lb:scale-105" alt={property.title} />
             {property.images.length > 4 && (
-              <div class="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-lg font-medium pointer-events-none">
-                +{property.images.length - 4} photos
+              <div class="absolute inset-0 bg-black/55 flex items-center justify-center text-white text-xl font-medium">
+                +{property.images.length - 4}
               </div>
             )}
-          </div>
+          </button>
         </div>
       </div>
+    </div>
+
+    <script type="application/json" id="lb-images" set:html={JSON.stringify(property.images && property.images.length ? property.images : [property.image])}></script>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="lb-overlay hidden" role="dialog" aria-modal="true" aria-label="Galerie photos">
+      <button id="lb-close" class="lb-btn lb-close" aria-label="Fermer">&times;</button>
+      <button id="lb-prev" class="lb-btn lb-arrow lb-prev" aria-label="Précédent">&lsaquo;</button>
+      <img id="lb-img" src="" alt="" class="lb-img" />
+      <button id="lb-next" class="lb-btn lb-arrow lb-next" aria-label="Suivant">&rsaquo;</button>
+      <div id="lb-counter" class="lb-counter"></div>
     </div>
 
     <!-- Content Grid -->
@@ -230,6 +241,21 @@ const similar: PropertyView[] = pickSimilar(property, all, 3);
   </div>
 
   <style>
+    /* Lightbox */
+    .lb-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.92); display: flex; align-items: center; justify-content: center; animation: lb-in .2s ease; }
+    .lb-overlay.hidden { display: none; }
+    @keyframes lb-in { from { opacity: 0; } to { opacity: 1; } }
+    .lb-img { max-width: 92vw; max-height: 86vh; object-fit: contain; border-radius: .5rem; box-shadow: 0 24px 70px rgba(0,0,0,.55); }
+    .lb-btn { position: absolute; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: #fff; cursor: pointer; backdrop-filter: blur(4px); display: grid; place-items: center; line-height: 1; transition: background .2s, transform .2s; }
+    .lb-btn:hover { background: rgba(255,255,255,.22); }
+    .lb-close { top: 20px; right: 20px; width: 44px; height: 44px; border-radius: 999px; font-size: 22px; }
+    .lb-arrow { top: 50%; transform: translateY(-50%); width: 48px; height: 48px; border-radius: 999px; font-size: 30px; }
+    .lb-arrow:hover { transform: translateY(-50%) scale(1.06); }
+    .lb-prev { left: 16px; } .lb-next { right: 16px; }
+    .lb-counter { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,.75); font-size: 12px; letter-spacing: .08em; }
+    @media (max-width: 640px) { .lb-prev { left: 8px; } .lb-next { right: 8px; } .lb-arrow { width: 42px; height: 42px; } }
+    @media (prefers-reduced-motion: reduce) { .lb-overlay { animation: none; } }
+
     .book-dialog {
       border: 1px solid var(--border); background: var(--background); color: var(--foreground);
       padding: 0; border-radius: 1.25rem; max-width: 460px; width: calc(100% - 2rem);
@@ -258,10 +284,39 @@ const similar: PropertyView[] = pickSimilar(property, all, 3);
     }
 
     window.addEventListener('immopro:locale-changed', updateCustomi18n);
+    function setupLightbox() {
+      const el = document.getElementById('lightbox');
+      const imgEl = document.getElementById('lb-img') as HTMLImageElement | null;
+      const counter = document.getElementById('lb-counter');
+      const data = document.getElementById('lb-images');
+      if (!el || !imgEl || !data || (el as HTMLElement).dataset.ready === '1') return;
+      (el as HTMLElement).dataset.ready = '1';
+      let images: string[] = [];
+      try { images = JSON.parse(data.textContent || '[]'); } catch {}
+      if (!images.length) return;
+      let idx = 0;
+      const lenis = () => (window as unknown as { __lenis?: { stop: () => void; start: () => void } }).__lenis;
+      const show = (i: number) => { idx = (i + images.length) % images.length; imgEl.src = images[idx]; if (counter) counter.textContent = `${idx + 1} / ${images.length}`; };
+      const open = (i: number) => { show(i); el.classList.remove('hidden'); lenis()?.stop(); document.documentElement.style.overflow = 'hidden'; };
+      const close = () => { el.classList.add('hidden'); lenis()?.start(); document.documentElement.style.overflow = ''; };
+      document.querySelectorAll('[data-lb]').forEach((b) => b.addEventListener('click', () => open(Number((b as HTMLElement).dataset.lb || 0))));
+      document.getElementById('lb-close')?.addEventListener('click', close);
+      document.getElementById('lb-prev')?.addEventListener('click', (e) => { e.stopPropagation(); show(idx - 1); });
+      document.getElementById('lb-next')?.addEventListener('click', (e) => { e.stopPropagation(); show(idx + 1); });
+      el.addEventListener('click', (e) => { if (e.target === el) close(); });
+      document.addEventListener('keydown', (e) => {
+        if (el.classList.contains('hidden')) return;
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowLeft') show(idx - 1);
+        else if (e.key === 'ArrowRight') show(idx + 1);
+      });
+    }
+
     document.addEventListener('astro:page-load', () => {
       updateCustomi18n();
       setupFilmButtons();
       setupBookingButton();
+      setupLightbox();
     });
 
     function setupFilmButtons() {
@@ -343,5 +398,6 @@ const similar: PropertyView[] = pickSimilar(property, all, 3);
     updateCustomi18n();
     setupFilmButtons();
     setupBookingButton();
+    setupLightbox();
   </script>
 </MainLayout>
