@@ -16,6 +16,9 @@ export const translations = {
     'hero.subtitle': "Une sélection d'appartements, villas et terrains à Douala, Yaoundé et au-delà.",
     'hero.cta.properties': 'Voir les biens →',
     'hero.cta.contact': 'Nous contacter',
+    'hero.trust.years': 'ans d’expertise',
+    'hero.trust.verified': 'Titres fonciers vérifiés',
+    'hero.trust.cities': 'Douala · Yaoundé · Kribi',
     'tag.cameroun': 'Immobilier · Cameroun',
 
     // Sections
@@ -358,6 +361,9 @@ export const translations = {
     'hero.subtitle': 'A curated selection of apartments, villas and land in Douala, Yaoundé and beyond.',
     'hero.cta.properties': 'View properties →',
     'hero.cta.contact': 'Contact us',
+    'hero.trust.years': 'years of expertise',
+    'hero.trust.verified': 'Verified land titles',
+    'hero.trust.cities': 'Douala · Yaoundé · Kribi',
     'tag.cameroun': 'Real Estate · Cameroon',
 
     // Sections

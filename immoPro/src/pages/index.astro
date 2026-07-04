@@ -30,6 +30,13 @@ const featured = await getFeaturedProperties(3);
             Nous contacter
           </a>
         </div>
+        <div class="reveal mt-9 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-foreground/55" style="--i:5">
+          <span><strong class="text-foreground/85 font-medium">12</strong> <span data-i18n="hero.trust.years">ans d'expertise</span></span>
+          <span class="text-foreground/25" aria-hidden="true">·</span>
+          <span data-i18n="hero.trust.verified">Titres fonciers vérifiés</span>
+          <span class="text-foreground/25" aria-hidden="true">·</span>
+          <span data-i18n="hero.trust.cities">Douala · Yaoundé · Kribi</span>
+        </div>
       </div>
 
       <div class="md:col-span-6 relative reveal" style="--i:2">
@@ -37,9 +44,13 @@ const featured = await getFeaturedProperties(3);
           <img data-parallax src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=85"
                alt="Villa contemporaine à Bonapriso, Douala"
                class="hero-img absolute inset-x-0 -top-[9%] w-full h-[118%] object-cover" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent pointer-events-none"></div>
+          <div class="absolute top-4 left-4 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/90 bg-black/25 backdrop-blur px-3 py-1.5 rounded-full border border-white/15">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="11" height="11"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            Bonapriso, Douala
+          </div>
         </div>
-        <div class="hero-badge reveal" style="--i:5">
+        <div class="hero-badge reveal" style="--i:6">
           <div class="serif text-2xl leading-none">240<span class="text-[#0F766E]">+</span></div>
           <div class="text-[10px] uppercase tracking-[0.18em] text-foreground/60 mt-1" data-i18n="home.hero.badge">Biens curatés</div>
         </div>
