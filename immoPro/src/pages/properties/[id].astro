@@ -102,10 +102,10 @@ const similar: PropertyView[] = pickSimilar(property, all, 3);
         <div class="space-y-4">
           <h3 class="serif text-2xl tracking-tight" data-i18n="property.highlights">Points d’excellence</h3>
           <ul class="features-fr grid grid-cols-2 gap-3 text-sm text-foreground/80">
-            {property.features.map(f => <li class="flex items-center gap-2"><span>✧</span> {f}</li>)}
+            {property.features.map(f => <li class="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2" width="15" height="15" class="shrink-0"><path d="m5 12 4 4L19 7"/></svg> {f}</li>)}
           </ul>
           <ul class="features-en grid grid-cols-2 gap-3 text-sm text-foreground/80 hidden">
-            {property.featuresEn.map(f => <li class="flex items-center gap-2"><span>✧</span> {f}</li>)}
+            {property.featuresEn.map(f => <li class="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2" width="15" height="15" class="shrink-0"><path d="m5 12 4 4L19 7"/></svg> {f}</li>)}
           </ul>
         </div>
 

@@ -278,25 +278,6 @@ const canonicalUrl = Astro.url.href;
       }
     }
 
-    // === Global functions ===
-    import { supabase } from '../lib/supabase/client.ts';
-
-    (window as any).subscribeForAlerts = async function() {
-      const locale = localStorage.getItem('immopro_locale') || 'fr';
-      const promptMsg = locale === 'fr'
-        ? 'Entrez votre email pour recevoir les nouvelles exclusivités :'
-        : 'Enter your email to receive new exclusives:';
-      const successMsg = locale === 'fr'
-        ? 'Merci ! Vous serez averti des nouvelles exclusivités.'
-        : 'Thank you! You will be notified of new exclusives.';
-
-      const email = prompt(promptMsg);
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return;
-      const { error } = await supabase.from('subscribers').insert({ email: email.trim(), locale });
-      // 23505 = already subscribed; treat as success for the visitor.
-      if (!error || error.code === '23505') alert(successMsg);
-    };
-
     // === Initialization (correctly wired for every load & navigation) ===
     function runEntranceSystems() {
       initLivelyTextAnimations();

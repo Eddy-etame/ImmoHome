@@ -9,11 +9,15 @@
         <p class="mt-2 max-w-sm text-foreground/65" data-i18n="footer.promise">
           Immobilier d’exception au Cameroun. Discrétion, rigueur et accompagnement sur la durée.
         </p>
-        <button onclick="window.subscribeForAlerts && window.subscribeForAlerts()" 
-                class="mt-6 text-xs uppercase tracking-[2px] border-b border-foreground/60 pb-px hover:text-[#0F766E] hover:border-[#0F766E] transition-colors"
-                data-i18n="footer.subscribe">
-          Être informé des nouvelles exclusivités
-        </button>
+        <div class="mt-6">
+          <div class="text-xs uppercase tracking-[2px] text-foreground/70 mb-2" data-i18n="footer.subscribe">Être informé des nouvelles exclusivités</div>
+          <form id="footer-sub" class="flex gap-3 max-w-xs" novalidate>
+            <input id="footer-sub-email" type="email" required placeholder="votre@email.com" data-i18n-placeholder="home.subscribe.placeholder"
+                   class="flex-1 min-w-0 border-b border-foreground/30 bg-transparent pb-1.5 text-sm text-foreground focus:outline-none focus:border-foreground transition-colors" />
+            <button type="submit" class="text-xs uppercase tracking-[2px] text-foreground/80 hover:text-[#0F766E] transition-colors whitespace-nowrap cursor-pointer" data-i18n="home.subscribe.button">M'inscrire</button>
+          </form>
+          <p id="footer-sub-msg" class="mt-2 text-[11px] hidden"></p>
+        </div>
       </div>
 
       <div class="md:col-span-3">
@@ -35,3 +39,32 @@
     </div>
   </div>
 </footer>
+
+<script>
+  import { supabase } from '../lib/supabase/client';
+  import { t, getLocale } from '../lib/i18n';
+
+  function setupFooterSub() {
+    const form = document.getElementById('footer-sub') as HTMLFormElement | null;
+    const input = document.getElementById('footer-sub-email') as HTMLInputElement | null;
+    const msg = document.getElementById('footer-sub-msg');
+    if (!form || !input || !msg || form.dataset.ready === '1') return;
+    form.dataset.ready = '1';
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = input.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        msg.className = 'mt-2 text-[11px] text-destructive'; msg.textContent = t('home.subscribe.invalid'); return;
+      }
+      const { error } = await supabase.from('subscribers').insert({ email, locale: getLocale() });
+      if (error && error.code !== '23505') {
+        msg.className = 'mt-2 text-[11px] text-destructive'; msg.textContent = t('home.subscribe.invalid'); return;
+      }
+      msg.className = 'mt-2 text-[11px] text-[#0F766E]'; msg.textContent = t('home.subscribe.success'); input.value = '';
+      setTimeout(() => msg.classList.add('hidden'), 6000);
+    });
+  }
+
+  setupFooterSub();
+  document.addEventListener('astro:page-load', setupFooterSub);
+</script>
