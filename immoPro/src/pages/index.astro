@@ -73,17 +73,17 @@ const favData = featured.map((p) => ({
               <img src={p.image} alt={p.title} loading="lazy"
                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] group-hover:scale-[1.06]" />
               <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent transition-opacity duration-300"></div>
-              <span class="absolute top-4 left-4 text-[10px] uppercase tracking-[0.18em] text-white/90 bg-black/25 backdrop-blur px-3 py-1 rounded-full border border-white/15">{p.type}</span>
+              <span class="absolute top-4 left-4 text-[10px] uppercase tracking-[0.18em] text-white/90 bg-black/25 backdrop-blur px-3 py-1 rounded-full border border-white/15" data-fr={p.type} data-en={p.type === 'APPARTEMENT' ? 'APARTMENT' : p.type === 'TERRAIN' ? 'LAND' : 'VILLA'}>{p.type}</span>
               <div class="absolute bottom-4 left-4 right-4 text-white">
                 <h3 class="serif text-2xl leading-tight" data-fr={p.title} data-en={p.titleEn}>{p.title}</h3>
-                <p class="text-xs text-white/85 mt-1">{p.city} · {p.surface} m²{p.rooms ? ` · ${p.rooms} ch.` : ''}</p>
+                <p class="text-xs text-white/85 mt-1">{p.city} · {p.surface} m²{p.rooms ? (<span data-fr={` · ${p.rooms} ch.`} data-en={` · ${p.rooms} rooms`}>{` · ${p.rooms} ch.`}</span>) : ''}</p>
               </div>
             </div>
           </a>
-          <button data-heart={p.id} class="heart absolute top-3.5 right-3.5 w-9 h-9 grid place-items-center rounded-full bg-black/25 backdrop-blur border border-white/15 text-lg text-white cursor-pointer transition hover:bg-black/45 hover:scale-110 active:scale-95" aria-label="Ajouter aux favoris">♡</button>
+          <button data-heart={p.id} class="heart absolute top-3.5 right-3.5 w-9 h-9 grid place-items-center rounded-full bg-black/25 backdrop-blur border border-white/15 text-lg text-white cursor-pointer transition hover:bg-black/45 hover:scale-110 active:scale-95" aria-label="Ajouter aux favoris" data-i18n-aria="card.favorite">♡</button>
           <div class="flex items-baseline justify-between mt-4 px-1">
             <div class="text-lg font-medium tracking-tight">{new Intl.NumberFormat('fr-FR').format(p.price)} <span class="text-xs font-normal text-foreground/50">FCFA</span></div>
-            <a href={`/properties/${p.id}`} class="text-[11px] uppercase tracking-[0.15em] text-foreground/55 group-hover:text-[#0F766E] transition-colors inline-flex items-center gap-1.5">Voir le bien <span class="card-arrow">→</span></a>
+            <a href={`/properties/${p.id}`} class="text-[11px] uppercase tracking-[0.15em] text-foreground/55 group-hover:text-[#0F766E] transition-colors inline-flex items-center gap-1.5"><span data-i18n="card.view">Voir le bien</span> <span class="card-arrow">→</span></a>
           </div>
         </div>
       ))}

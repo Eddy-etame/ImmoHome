@@ -34,6 +34,8 @@ export const translations = {
     'home.stats.clients': 'Clients satisfaits',
     'home.stats.recommendation': 'Taux de recommandation',
     'home.stats.experience': 'Années d’expertise',
+    'card.view': 'Voir le bien',
+    'card.favorite': 'Ajouter aux favoris',
 
     // Common
     'common.watch_film': 'Regarder le film d’exception',
@@ -371,6 +373,8 @@ export const translations = {
     'home.stats.clients': 'Happy clients',
     'home.stats.recommendation': 'Recommendation rate',
     'home.stats.experience': 'Years of expertise',
+    'card.view': 'View property',
+    'card.favorite': 'Add to favorites',
 
     // Common
     'common.watch_film': 'Watch the cinematic film',
