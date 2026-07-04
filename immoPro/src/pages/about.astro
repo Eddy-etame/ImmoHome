@@ -50,6 +50,24 @@ import MainLayout from '../layouts/MainLayout.astro';
     </div>
   </section>
 
+  <!-- Editorial pull-quote band -->
+  <section class="relative overflow-hidden">
+    <div class="relative h-[54vh] min-h-[380px]">
+      <img src="https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1600&q=85"
+           alt="Résidence d'exception au Cameroun" loading="lazy"
+           class="absolute inset-0 w-full h-full object-cover" />
+      <div class="absolute inset-0 bg-black/50"></div>
+      <div class="absolute inset-0 flex items-center">
+        <div class="mx-auto max-w-4xl px-5 w-full">
+          <blockquote class="serif text-3xl md:text-5xl leading-[1.15] text-white tracking-tight max-w-3xl reveal" data-i18n="about.quote">
+            « Nous ne vendons pas des mètres carrés. Nous accompagnons des décisions de vie. »
+          </blockquote>
+          <div class="mt-6 text-white/70 text-xs uppercase tracking-[0.25em] reveal" style="--i:1" data-i18n="about.quote_author">La maison ImmoPro</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Market / Territories -->
   <section class="border-b border-border py-20">
     <div class="mx-auto max-w-6xl px-5">

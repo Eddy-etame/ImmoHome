@@ -228,6 +228,8 @@ export const translations = {
 
     // About
     'about.title': 'Une maison. Pas une agence.',
+    'about.quote': '« Nous ne vendons pas des mètres carrés. Nous accompagnons des décisions de vie. »',
+    'about.quote_author': 'La maison ImmoPro',
     'about.subtitle': 'Immobilier d’exception au Cameroun',
     'about.intro_p1': 'ImmoPro n’est pas une agence immobilière comme les autres. C’est une maison éditoriale dédiée à la sélection, à la curation et à l’accompagnement des transactions immobilières les plus exigeantes au Cameroun.',
     'about.intro_p2': 'Fondée par des passionnés du patrimoine architectural camerounais, ImmoPro travaille avec un cercle restreint de propriétaires et d’acquéreurs qui partagent une même exigence : la rigueur, la discrétion et le temps long.',
@@ -573,6 +575,8 @@ export const translations = {
 
     // About
     'about.title': 'A home. Not an agency.',
+    'about.quote': '“We don’t sell square meters. We guide life decisions.”',
+    'about.quote_author': 'The ImmoPro house',
     'about.subtitle': 'Premium real estate in Cameroon',
     'about.intro_p1': 'ImmoPro is not a real estate agency in the usual sense. It is an editorial house dedicated to the curation, selection, and stewardship of the most demanding real estate transactions in Cameroon.',
     'about.intro_p2': 'Founded by people passionate about Cameroonian architectural heritage, ImmoPro works with a restricted circle of owners and buyers who share the same standard: rigor, discretion, and the long view.',
