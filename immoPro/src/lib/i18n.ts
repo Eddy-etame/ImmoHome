@@ -333,6 +333,8 @@ export const translations = {
 
     // Property detail enrichment
     'property.neighborhood': 'Le quartier',
+    'property.location': 'Localisation',
+    'property.location_note': 'Emplacement approximatif — l’adresse exacte est communiquée lors de la prise de contact.',
     'property.similar': 'Biens similaires',
     'property.similar_subtitle': 'D’autres opportunités pourraient vous intéresser',
     'property.bathrooms_field': 'Salles de bain :',
@@ -673,6 +675,8 @@ export const translations = {
 
     // Property detail enrichment
     'property.neighborhood': 'The neighborhood',
+    'property.location': 'Location',
+    'property.location_note': 'Approximate location — the exact address is shared when you get in touch.',
     'property.similar': 'Similar properties',
     'property.similar_subtitle': 'Other opportunities you may find of interest',
     'property.bathrooms_field': 'Bathrooms:',
