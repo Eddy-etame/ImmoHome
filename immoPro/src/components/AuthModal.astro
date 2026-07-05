@@ -11,7 +11,7 @@
     <h2 id="auth-title" class="serif text-3xl tracking-tight mb-1">Se connecter</h2>
     <p id="auth-sub" class="text-sm text-foreground/60 mb-6">Connectez-vous pour enregistrer vos biens favoris.</p>
 
-    <div class="flex gap-1 mb-5 text-sm">
+    <div id="auth-tabs" class="flex gap-1 mb-5 text-sm">
       <button type="button" id="auth-tab-signin" class="auth-tab is-active">Se connecter</button>
       <button type="button" id="auth-tab-signup" class="auth-tab">Créer un compte</button>
     </div>
@@ -27,6 +27,17 @@
         Se connecter
       </button>
     </form>
+
+    <!-- Post-signup: confirmation email sent. Shown instead of the form. -->
+    <div id="auth-sent" class="hidden text-center">
+      <div class="mx-auto mb-4 w-12 h-12 rounded-full flex items-center justify-center bg-[#0F766E]/10 text-[#0F766E] text-2xl" aria-hidden="true">✉</div>
+      <h3 id="auth-sent-title" class="serif text-2xl tracking-tight mb-2">Vérifiez votre boîte mail</h3>
+      <p id="auth-sent-sub" class="text-sm text-foreground/65 mb-1">Nous avons envoyé un lien de confirmation à</p>
+      <p id="auth-sent-email" class="text-sm font-medium mb-5 break-all"></p>
+      <p id="auth-resend-msg" class="text-xs mb-3 hidden"></p>
+      <button type="button" id="auth-resend" class="w-full py-3 border border-border rounded-xl text-sm tracking-widest hover:border-foreground transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Renvoyer l’email</button>
+      <button type="button" id="auth-back" class="mt-3 text-xs text-foreground/55 hover:text-foreground cursor-pointer transition-colors">Retour à la connexion</button>
+    </div>
   </div>
 </dialog>
 
@@ -62,7 +73,106 @@
     invalid: () => (isEn() ? 'Enter a valid email and a 6+ character password.' : 'Email valide et mot de passe de 6+ caractères requis.'),
     confirm: () => (isEn() ? 'Account created. Check your email to confirm, then sign in.' : 'Compte créé. Confirmez votre email, puis connectez-vous.'),
     signout: () => (isEn() ? 'Sign out' : 'Déconnexion'),
+    inboxTitle: () => (isEn() ? 'Check your inbox' : 'Vérifiez votre boîte mail'),
+    inboxSub: () => (isEn() ? 'We sent a confirmation link to' : 'Nous avons envoyé un lien de confirmation à'),
+    resend: () => (isEn() ? 'Resend email' : 'Renvoyer l’email'),
+    resending: () => (isEn() ? 'Sending…' : 'Envoi…'),
+    resent: () => (isEn() ? 'Email sent again — check your inbox (and spam).' : 'Email renvoyé — vérifiez votre boîte (et les spams).'),
+    back: () => (isEn() ? 'Back to sign in' : 'Retour à la connexion'),
+    authError: () => (isEn()
+      ? 'That confirmation link is invalid or has expired. Sign in, or create your account again.'
+      : 'Ce lien de confirmation est invalide ou a expiré. Connectez-vous, ou recréez votre compte.'),
   };
+
+  // Where Supabase sends the user after they click the email link.
+  const redirectTo = () => `${window.location.origin}/auth/callback`;
+
+  const friendlyError = (m: string) => {
+    const low = (m || '').toLowerCase();
+    if (low.includes('rate limit')) return isEn()
+      ? 'Too many emails sent right now. Please wait a minute and try again.'
+      : 'Trop d’emails envoyés pour le moment. Patientez une minute puis réessayez.';
+    if (low.includes('invalid login')) return isEn()
+      ? 'Incorrect email or password.'
+      : 'Email ou mot de passe incorrect.';
+    if (low.includes('already registered')) return isEn()
+      ? 'This email already has an account. Sign in instead.'
+      : 'Un compte existe déjà avec cet email. Connectez-vous.';
+    return m;
+  };
+
+  // ---------- Post-signup "check your inbox" + resend ----------
+  let lastSignupEmail = '';
+  let resendCooldown = 0;
+  let cooldownTimer: number | null = null;
+
+  function resendMsg(text: string, ok = false) {
+    const el = $('auth-resend-msg');
+    if (!el) return;
+    el.textContent = text;
+    el.className = `text-xs mb-3 ${ok ? 'text-[#0F766E]' : 'text-destructive'}`; // no 'hidden' → visible
+  }
+
+  function stopCooldown() {
+    if (cooldownTimer !== null) { clearInterval(cooldownTimer); cooldownTimer = null; }
+    resendCooldown = 0;
+  }
+
+  function startCooldown(sec: number) {
+    const btn = $('auth-resend') as HTMLButtonElement | null;
+    resendCooldown = sec;
+    const render = () => {
+      if (!btn) return;
+      if (resendCooldown <= 0) { btn.disabled = false; btn.textContent = T.resend(); }
+      else { btn.disabled = true; btn.textContent = `${T.resend()} (${resendCooldown}s)`; }
+    };
+    render();
+    if (cooldownTimer !== null) clearInterval(cooldownTimer);
+    cooldownTimer = window.setInterval(() => {
+      resendCooldown -= 1;
+      if (resendCooldown <= 0) { stopCooldown(); } render();
+    }, 1000);
+  }
+
+  function showInbox(email: string) {
+    lastSignupEmail = email;
+    ['auth-title', 'auth-sub', 'auth-tabs', 'auth-form'].forEach((id) => $(id)?.classList.add('hidden'));
+    $('auth-sent')?.classList.remove('hidden');
+    const t = $('auth-sent-title'); if (t) t.textContent = T.inboxTitle();
+    const s = $('auth-sent-sub'); if (s) s.textContent = T.inboxSub();
+    const em = $('auth-sent-email'); if (em) em.textContent = email;
+    const back = $('auth-back'); if (back) back.textContent = T.back();
+    $('auth-resend-msg')?.classList.add('hidden');
+    stopCooldown();
+    const rb = $('auth-resend') as HTMLButtonElement | null;
+    if (rb) { rb.disabled = false; rb.textContent = T.resend(); }
+  }
+
+  function showFormState() {
+    $('auth-sent')?.classList.add('hidden');
+    stopCooldown();
+    ['auth-title', 'auth-sub', 'auth-tabs', 'auth-form'].forEach((id) => $(id)?.classList.remove('hidden'));
+    setMode('signin');
+  }
+
+  async function resendConfirmation() {
+    if (resendCooldown > 0 || !lastSignupEmail) return;
+    const btn = $('auth-resend') as HTMLButtonElement | null;
+    if (btn) { btn.disabled = true; btn.textContent = T.resending(); }
+    $('auth-resend-msg')?.classList.add('hidden');
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: lastSignupEmail,
+      options: { emailRedirectTo: redirectTo() },
+    });
+    if (error) {
+      resendMsg(friendlyError(error.message));
+      startCooldown(/rate limit/i.test(error.message) ? 60 : 30);
+    } else {
+      resendMsg(T.resent(), true);
+      startCooldown(30);
+    }
+  }
 
   function setMode(m: Mode) {
     mode = m;
@@ -86,7 +196,7 @@
 
   (window as any).immoproOpenAuth = (uid?: string) => {
     pendingUid = uid || null;
-    setMode('signin');
+    showFormState();
     const d = dlg();
     if (d) (d.showModal ? d.showModal() : d.setAttribute('open', ''));
     setTimeout(() => ($('auth-email') as HTMLInputElement | null)?.focus(), 60);
@@ -125,7 +235,7 @@
       const a = el as HTMLElement;
       if (data.user) {
         a.textContent = T.signout();
-        a.onclick = async (e) => { e.preventDefault(); await supabase.auth.signOut(); window.dispatchEvent(new CustomEvent('immopro:auth-changed', { detail: {} })); };
+        a.onclick = async (e) => { e.preventDefault(); await supabase.auth.signOut({ scope: 'local' }); window.location.reload(); };
       } else {
         a.textContent = T.signin();
         a.onclick = (e) => { e.preventDefault(); (window as any).immoproOpenAuth(); };
@@ -147,27 +257,46 @@
     $('auth-tab-signin')?.addEventListener('click', () => setMode('signin'));
     $('auth-tab-signup')?.addEventListener('click', () => setMode('signup'));
     $('auth-close')?.addEventListener('click', () => dlg()?.close());
+    $('auth-resend')?.addEventListener('click', resendConfirmation);
+    $('auth-back')?.addEventListener('click', showFormState);
+
+    let submitting = false;
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (submitting) return; // guard against double-fire (extra signup emails)
       const email = ($('auth-email') as HTMLInputElement).value.trim();
       const password = ($('auth-password') as HTMLInputElement).value;
       const name = ($('auth-name') as HTMLInputElement | null)?.value.trim() || '';
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 6) { msg(T.invalid()); return; }
 
-      if (mode === 'signup') {
-        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name, role: 'client' } } });
-        if (error) { msg(error.message); return; }
-        if (!data.session) { msg(T.confirm(), true); setMode('signin'); return; } // email confirmation on
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) { msg(error.message); return; }
-      }
+      submitting = true;
+      const submitBtn = $('auth-submit') as HTMLButtonElement | null;
+      if (submitBtn) submitBtn.disabled = true;
+      try {
+        if (mode === 'signup') {
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: { data: { full_name: name, role: 'client' }, emailRedirectTo: redirectTo() },
+          });
+          if (error) { msg(friendlyError(error.message)); return; }
+          // Email confirmation ON → no session yet. Show the "check your inbox"
+          // state with a resend option instead of a one-line message.
+          if (!data.session) { showInbox(email); return; }
+        } else {
+          const { error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) { msg(friendlyError(error.message)); return; }
+        }
 
-      dlg()?.close();
-      form.reset();
-      window.dispatchEvent(new CustomEvent('immopro:auth-changed', { detail: { pendingUid } }));
-      pendingUid = null;
+        dlg()?.close();
+        form.reset();
+        window.dispatchEvent(new CustomEvent('immopro:auth-changed', { detail: { pendingUid } }));
+        pendingUid = null;
+      } finally {
+        submitting = false;
+        if (submitBtn) submitBtn.disabled = false;
+      }
     });
   }
 
@@ -185,10 +314,33 @@
   window.addEventListener('favorites-updated', refreshHearts);
   window.addEventListener('immopro:locale-changed', updateAccountUI);
 
+  // Keep the account button / favorites in sync when the session changes without
+  // a full reload (e.g. email link confirmed in this tab). Deferred with a
+  // timeout because calling supabase inside this callback can deadlock the lock.
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+      setTimeout(() => { refreshAll(); }, 0);
+    }
+  });
+
+  // If a confirmation link failed (see /auth/callback), the user is bounced back
+  // with ?auth=error. Open the modal and explain, then clean the URL.
+  function maybeHandleAuthResult() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auth') === 'error') {
+      (window as any).immoproOpenAuth();
+      msg(T.authError());
+      params.delete('auth');
+      const qs = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''));
+    }
+  }
+
   function init() {
     setupForm();
     wireHearts();
     refreshAll();
+    maybeHandleAuthResult();
   }
   init();
   document.addEventListener('astro:page-load', init);

@@ -301,15 +301,26 @@ if (user) {
     // ---- Login (present only when signed out) ----
     const loginForm = document.getElementById('login-form') as HTMLFormElement | null;
     if (loginForm) {
+      let signingIn = false;
+      const loginBtn = loginForm.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+      const loginBtnLabel = loginBtn?.textContent || 'Se connecter';
       loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (signingIn) return;
         const email = (document.getElementById('login-email') as HTMLInputElement).value.trim();
         const password = (document.getElementById('login-password') as HTMLInputElement).value;
         const err = document.getElementById('login-error');
         err?.classList.add('hidden');
+        signingIn = true;
+        if (loginBtn) { loginBtn.disabled = true; loginBtn.textContent = 'Connexion…'; }
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) { err?.classList.remove('hidden'); return; }
-        window.location.reload();
+        if (error) {
+          err?.classList.remove('hidden');
+          signingIn = false;
+          if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = loginBtnLabel; }
+          return;
+        }
+        window.location.href = '/agent';
       });
     }
 
@@ -640,7 +651,7 @@ if (user) {
       document.getElementById('btn-new-client')?.addEventListener('click', openNewClient);
       document.getElementById('btn-new-account')?.addEventListener('click', openNewAccount);
       document.getElementById('btn-new-appointment')?.addEventListener('click', openNewAppointment);
-      document.getElementById('agent-lock-btn')?.addEventListener('click', async () => { await supabase.auth.signOut(); window.location.reload(); });
+      document.getElementById('agent-lock-btn')?.addEventListener('click', async () => { await supabase.auth.signOut({ scope: 'local' }); window.location.href = '/agent'; });
 
       await Promise.all([loadProperties(), loadClients(), loadAppointments()]);
       renderProperties(); renderKpis();

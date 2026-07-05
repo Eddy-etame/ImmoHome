@@ -7,7 +7,7 @@
  * stays synchronous for rendering.
  */
 import { supabase } from './supabase/client';
-import { toView, type PropertyView } from './queries';
+import { toView, type PropertyView } from './property';
 
 let cache: Set<string> | null = null;
 let userId: string | null = null;

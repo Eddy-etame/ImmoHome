@@ -269,7 +269,7 @@ if (isOwner) needPassphrase = await needsPassphrase(Astro.cookies.get(ATELIER_CO
     }
 
     async function bootConsole() {
-      document.getElementById('owner-logout')?.addEventListener('click', async () => { await supabase.auth.signOut(); window.location.reload(); });
+      document.getElementById('owner-logout')?.addEventListener('click', async () => { await supabase.auth.signOut({ scope: 'local' }); window.location.href = '/atelier'; });
       setupExports();
       setupDanger();
       await renderStats();

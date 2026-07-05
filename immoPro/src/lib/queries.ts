@@ -1,5 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Database, PropertyType, PropertyStatus } from './database.types';
+import type { Database } from './database.types';
+import { toView, type PropertyRow, type PropertyView } from './property';
+
+// Re-export so existing importers (pages) keep working unchanged.
+export { toView };
+export type { PropertyView };
 
 /**
  * Anon Supabase client for public, read-only data on the server (Astro
@@ -13,71 +18,6 @@ const SUPABASE_ANON =
   import.meta.env.PUBLIC_SUPABASE_ANON_KEY || (globalThis as any).process?.env?.PUBLIC_SUPABASE_ANON_KEY;
 
 const sb = createClient<Database>(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: false } });
-
-/** UI-facing property shape (camelCase), decoupled from DB column names. */
-export interface PropertyView {
-  id: string;            // slug — used in URLs
-  uid: string;           // database uuid — used for relations (favorites)
-  title: string;
-  titleEn: string;
-  city: string;
-  price: number;
-  surface: number;
-  type: PropertyType;
-  status: PropertyStatus;
-  rooms: number | null;
-  bathrooms: number | null;
-  image: string;         // cover image
-  images: string[];
-  description: string;
-  descriptionEn: string;
-  features: string[];
-  featuresEn: string[];
-  neighborhood: string;
-  neighborhoodEn: string;
-  lat: number | null;
-  lng: number | null;
-}
-
-type PropertyRow = Database['public']['Tables']['properties']['Row'] & {
-  property_images?: { url: string; sort_order: number }[] | null;
-};
-
-export function toView(row: PropertyRow): PropertyView {
-  const galleryFromJoin = (row.property_images ?? [])
-    .slice()
-    .sort((a, b) => a.sort_order - b.sort_order)
-    .map((i) => i.url);
-  const images = galleryFromJoin.length > 0
-    ? galleryFromJoin
-    : row.cover_image
-      ? [row.cover_image]
-      : [];
-
-  return {
-    id: row.slug ?? row.id,
-    uid: row.id,
-    title: row.title,
-    titleEn: row.title_en ?? row.title,
-    city: row.city,
-    price: row.price,
-    surface: row.surface,
-    type: row.type,
-    status: row.status,
-    rooms: row.rooms,
-    bathrooms: row.bathrooms,
-    image: row.cover_image ?? images[0] ?? '',
-    images,
-    description: row.description ?? '',
-    descriptionEn: row.description_en ?? row.description ?? '',
-    features: row.features ?? [],
-    featuresEn: row.features_en ?? row.features ?? [],
-    neighborhood: row.neighborhood ?? '',
-    neighborhoodEn: row.neighborhood_en ?? row.neighborhood ?? '',
-    lat: row.lat,
-    lng: row.lng
-  };
-}
 
 const SELECT_WITH_IMAGES = '*, property_images(url, sort_order)';
 

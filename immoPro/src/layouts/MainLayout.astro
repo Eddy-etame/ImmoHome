@@ -54,6 +54,10 @@ const canonicalUrl = Astro.url.href;
     <meta property="twitter:description" content={description} />
     <meta property="twitter:image" content={ogImage} />
 
+    <!-- Favicon (SVG so the browser stops requesting /favicon.ico → no 404) -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="mask-icon" href="/favicon.svg" color="#0F766E" />
+
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
