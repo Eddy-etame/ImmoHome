@@ -1,0 +1,65 @@
+---
+interface Props {
+  preface?: boolean;
+}
+
+const { preface = false } = Astro.props;
+---
+
+<div class:list={['agency-credit', { 'agency-credit--preface': preface }]} lang="en">
+  <span class="agency-credit__crest" aria-hidden="true"></span>
+  <span class="agency-credit__wordmark">
+    <span class="agency-credit__label">Powered by</span>
+    <span class="agency-credit__name">EAM Agency</span>
+  </span>
+</div>
+
+<style>
+  .agency-credit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    color: var(--foreground);
+    text-align: left;
+  }
+
+  .agency-credit--preface {
+    margin-block-start: 1.125rem;
+  }
+
+  .agency-credit__crest {
+    flex: none;
+    inline-size: 1.625rem;
+    block-size: 2.25rem;
+    background-color: #0f766e;
+    -webkit-mask: url('/brand/eam-crest.png') center / contain no-repeat;
+    mask: url('/brand/eam-crest.png') center / contain no-repeat;
+  }
+
+  .agency-credit__wordmark {
+    display: grid;
+    gap: 0.1875rem;
+  }
+
+  .agency-credit__label {
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .agency-credit__name {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    line-height: 1.05;
+  }
+
+  @media (forced-colors: active) {
+    .agency-credit__crest {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+  }
+</style>

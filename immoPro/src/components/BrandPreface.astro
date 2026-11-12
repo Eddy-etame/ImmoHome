@@ -1,4 +1,6 @@
 ---
+import AgencyCredit from './AgencyCredit.astro';
+
 // Brand Preface — cinematic loader for ImmoPro.
 // The script is `is:inline` on purpose: it must run immediately and never be
 // coupled to (or blocked by) the app's JS bundle. It self-removes no matter
@@ -13,6 +15,7 @@
     <div class="preface-kicker">Cameroun · Immobilier d’Exception</div>
     <div class="preface-logo" data-word="ImmoPro">ImmoPro</div>
     <div class="preface-rule"><span class="preface-rule-fill"></span></div>
+    <AgencyCredit preface />
   </div>
 
   <div class="preface-meta">
